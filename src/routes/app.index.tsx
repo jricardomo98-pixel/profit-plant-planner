@@ -214,6 +214,44 @@ function CalculatorPage() {
           </p>
         </Card>
 
+        {(validation.errors.length > 0 || validation.warnings.length > 0) && (
+          <div className="space-y-2">
+            {validation.errors.length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Corrige antes de continuar</AlertTitle>
+                <AlertDescription>
+                  <ul className="mt-1 list-disc space-y-1 pl-4">
+                    {validation.errors.map((e, i) => (
+                      <li key={i}>{e.msg}{e.fix ? <> — {e.fix}</> : null}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+            {validation.warnings.length > 0 && (
+              <Alert className="border-warning/40 bg-warning/10 text-foreground [&>svg]:text-warning">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Avisos</AlertTitle>
+                <AlertDescription>
+                  <ul className="mt-1 list-disc space-y-1 pl-4">
+                    {validation.warnings.map((w, i) => (
+                      <li key={i}>{w.msg}{w.fix ? <> — {w.fix}</> : null}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
+
+        {validation.errors.length === 0 && validation.warnings.length === 0 && (laborMin || machineMin || used.length > 0) && (
+          <Alert className="border-primary/30 bg-primary/5 [&>svg]:text-primary">
+            <CheckCircle2 className="h-4 w-4" />
+            <AlertDescription className="text-sm">Tudo certo — podes guardar a {vocab.recipe} com confiança.</AlertDescription>
+          </Alert>
+        )}
+
         <Card className="space-y-3 p-5">
           <div className="flex items-center justify-between">
             <div>
