@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Calculator, Save, Clock, Flame } from "lucide-react";
+import { Plus, Trash2, Calculator, Save, Clock, Flame, AlertTriangle, AlertCircle, CheckCircle2 } from "lucide-react";
 import { fmtEUR, round2 } from "@/lib/format";
 import { VOCAB, type BusinessType } from "@/lib/business-types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/")({ component: CalculatorPage });
