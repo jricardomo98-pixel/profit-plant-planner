@@ -14,7 +14,201 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      fixed_costs: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ingredients: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          package_price: number
+          package_quantity: number
+          supplier: string | null
+          unit: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          package_price?: number
+          package_quantity?: number
+          supplier?: string | null
+          unit?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          package_price?: number
+          package_quantity?: number
+          supplier?: string | null
+          unit?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          client_name: string
+          components: Json
+          created_at: string
+          decoration_cost: number
+          decoration_notes: string | null
+          delivery_date: string | null
+          id: string
+          product_description: string | null
+          status: string
+          total_cost: number
+          total_price: number
+          user_id: string
+        }
+        Insert: {
+          client_name: string
+          components?: Json
+          created_at?: string
+          decoration_cost?: number
+          decoration_notes?: string | null
+          delivery_date?: string | null
+          id?: string
+          product_description?: string | null
+          status?: string
+          total_cost?: number
+          total_price?: number
+          user_id: string
+        }
+        Update: {
+          client_name?: string
+          components?: Json
+          created_at?: string
+          decoration_cost?: number
+          decoration_notes?: string | null
+          delivery_date?: string | null
+          id?: string
+          product_description?: string | null
+          status?: string
+          total_cost?: number
+          total_price?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          business_name: string | null
+          business_type: string | null
+          created_at: string
+          id: string
+          labor_rate_hour: number
+          machine_rate_hour: number
+          monthly_work_hours: number
+          onboarded: boolean
+          profit_margin: number
+          updated_at: string
+        }
+        Insert: {
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string
+          id: string
+          labor_rate_hour?: number
+          machine_rate_hour?: number
+          monthly_work_hours?: number
+          onboarded?: boolean
+          profit_margin?: number
+          updated_at?: string
+        }
+        Update: {
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string
+          id?: string
+          labor_rate_hour?: number
+          machine_rate_hour?: number
+          monthly_work_hours?: number
+          onboarded?: boolean
+          profit_margin?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recipes: {
+        Row: {
+          created_at: string
+          fixed_cost_share: number
+          id: string
+          ingredient_cost: number
+          ingredients_used: Json
+          labor_cost: number
+          labor_minutes: number
+          machine_cost: number
+          machine_minutes: number
+          name: string
+          notes: string | null
+          suggested_price: number
+          total_cost: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fixed_cost_share?: number
+          id?: string
+          ingredient_cost?: number
+          ingredients_used?: Json
+          labor_cost?: number
+          labor_minutes?: number
+          machine_cost?: number
+          machine_minutes?: number
+          name: string
+          notes?: string | null
+          suggested_price?: number
+          total_cost?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fixed_cost_share?: number
+          id?: string
+          ingredient_cost?: number
+          ingredients_used?: Json
+          labor_cost?: number
+          labor_minutes?: number
+          machine_cost?: number
+          machine_minutes?: number
+          name?: string
+          notes?: string | null
+          suggested_price?: number
+          total_cost?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
