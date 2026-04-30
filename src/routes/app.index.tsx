@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Calculator, Save, Clock, Flame } from "lucide-react";
+import { Plus, Trash2, Calculator, Save, Clock, Flame, AlertTriangle, AlertCircle, CheckCircle2 } from "lucide-react";
 import { fmtEUR, round2 } from "@/lib/format";
 import { VOCAB, type BusinessType } from "@/lib/business-types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/")({ component: CalculatorPage });
@@ -84,6 +86,65 @@ function CalculatorPage() {
     };
   }, [laborMin, machineMin, used, ingredients, profile, fixedCostsTotal, units]);
 
+  const validation = useMemo(() => {
+    const errors: { msg: string; fix?: React.ReactNode }[] = [];
+    const warnings: { msg: string; fix?: React.ReactNode }[] = [];
+
+    const lm = parseFloat(laborMin);
+    const mm = parseFloat(machineMin);
+    const u = parseFloat(units);
+
+    if (laborMin !== "" && (isNaN(lm) || lm < 0)) errors.push({ msg: "Os minutos de mão-de-obra não podem ser negativos." });
+    if (machineMin !== "" && (isNaN(mm) || mm < 0)) errors.push({ msg: `Os minutos de ${vocab.machine} não podem ser negativos.` });
+    if (units !== "" && (isNaN(u) || u < 1)) errors.push({ msg: "As unidades produzidas têm de ser pelo menos 1." });
+
+    if ((parseFloat(laborMin) || 0) === 0 && (parseFloat(machineMin) || 0) === 0) {
+      warnings.push({ msg: "Não indicaste tempo de trabalho nem de máquina — o custo de mão-de-obra ficará a zero." });
+    }
+
+    if ((parseFloat(laborMin) || 0) > 0 && !(profile?.labor_rate_hour > 0)) {
+      warnings.push({
+        msg: "Não tens taxa de mão-de-obra (€/h) definida.",
+        fix: <Link to="/app/settings" className="font-medium underline">Definir nas Definições</Link>,
+      });
+    }
+    if ((parseFloat(machineMin) || 0) > 0 && !(profile?.machine_rate_hour > 0)) {
+      warnings.push({
+        msg: `Não tens taxa de ${vocab.machine} (€/h) definida.`,
+        fix: <Link to="/app/settings" className="font-medium underline">Definir nas Definições</Link>,
+      });
+    }
+
+    const ingMap = new Map(ingredients.map((i) => [i.id, i]));
+    const counts = new Map<string, number>();
+    used.forEach((x, idx) => {
+      const ing = ingMap.get(x.ingredient_id);
+      const label = ing?.name ?? `Linha ${idx + 1}`;
+      if (x.quantity < 0) errors.push({ msg: `"${label}": a quantidade usada não pode ser negativa.` });
+      if (x.quantity === 0) warnings.push({ msg: `"${label}": quantidade usada é 0 — não vai contar para o custo.` });
+      if (ing && x.quantity > Number(ing.package_quantity)) {
+        warnings.push({
+          msg: `"${label}": estás a usar ${x.quantity}${ing.unit} mas a embalagem tem apenas ${ing.package_quantity}${ing.unit}. Confirma se vais precisar de mais que uma embalagem.`,
+        });
+      }
+      counts.set(x.ingredient_id, (counts.get(x.ingredient_id) ?? 0) + 1);
+    });
+    counts.forEach((n, id) => {
+      if (n > 1) {
+        const ing = ingMap.get(id);
+        warnings.push({ msg: `"${ing?.name ?? "Item"}" aparece ${n} vezes — considera juntar numa só linha.` });
+      }
+    });
+
+    if ((profile?.profit_margin ?? 0) <= 0) {
+      warnings.push({
+        msg: "Margem de lucro está a 0% — o preço sugerido será igual ao custo.",
+        fix: <Link to="/app/settings" className="font-medium underline">Ajustar margem</Link>,
+      });
+    }
+
+    return { errors, warnings, hasErrors: errors.length > 0 };
+  }, [laborMin, machineMin, units, used, ingredients, profile, vocab]);
   function addUsed() {
     if (ingredients.length === 0) return;
     setUsed((u) => [...u, { ingredient_id: ingredients[0].id, quantity: 0 }]);
@@ -92,6 +153,10 @@ function CalculatorPage() {
   async function saveRecipe() {
     if (!user) return;
     if (!name.trim()) { toast.error("Dá um nome à receita"); return; }
+    if (validation.hasErrors) {
+      toast.error("Corrige os erros assinalados antes de guardar.");
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.from("recipes").insert({
       user_id: user.id,
@@ -148,6 +213,44 @@ function CalculatorPage() {
             💡 Tempo de máquina ({vocab.machine}) é mais barato — não estás a trabalhar ativamente. Definido em €/h nas Definições.
           </p>
         </Card>
+
+        {(validation.errors.length > 0 || validation.warnings.length > 0) && (
+          <div className="space-y-2">
+            {validation.errors.length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Corrige antes de continuar</AlertTitle>
+                <AlertDescription>
+                  <ul className="mt-1 list-disc space-y-1 pl-4">
+                    {validation.errors.map((e, i) => (
+                      <li key={i}>{e.msg}{e.fix ? <> — {e.fix}</> : null}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+            {validation.warnings.length > 0 && (
+              <Alert className="border-warning/40 bg-warning/10 text-foreground [&>svg]:text-warning">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Avisos</AlertTitle>
+                <AlertDescription>
+                  <ul className="mt-1 list-disc space-y-1 pl-4">
+                    {validation.warnings.map((w, i) => (
+                      <li key={i}>{w.msg}{w.fix ? <> — {w.fix}</> : null}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
+
+        {validation.errors.length === 0 && validation.warnings.length === 0 && (laborMin || machineMin || used.length > 0) && (
+          <Alert className="border-primary/30 bg-primary/5 [&>svg]:text-primary">
+            <CheckCircle2 className="h-4 w-4" />
+            <AlertDescription className="text-sm">Tudo certo — podes guardar a {vocab.recipe} com confiança.</AlertDescription>
+          </Alert>
+        )}
 
         <Card className="space-y-3 p-5">
           <div className="flex items-center justify-between">
@@ -214,8 +317,11 @@ function CalculatorPage() {
             <Row label="Custo total do lote" value={calc.totalBatch} bold />
           </div>
 
-          <div className="border-t p-4">
-            <Button onClick={saveRecipe} disabled={busy} className="w-full rounded-full" size="lg">
+          <div className="border-t p-4 space-y-2">
+            {validation.hasErrors && (
+              <p className="text-center text-xs font-medium text-destructive">Corrige os erros antes de guardar.</p>
+            )}
+            <Button onClick={saveRecipe} disabled={busy || validation.hasErrors} className="w-full rounded-full" size="lg">
               <Save className="mr-1 h-4 w-4" />{busy ? "A guardar…" : "Guardar receita"}
             </Button>
           </div>
