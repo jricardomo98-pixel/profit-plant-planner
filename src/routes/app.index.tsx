@@ -317,8 +317,11 @@ function CalculatorPage() {
             <Row label="Custo total do lote" value={calc.totalBatch} bold />
           </div>
 
-          <div className="border-t p-4">
-            <Button onClick={saveRecipe} disabled={busy} className="w-full rounded-full" size="lg">
+          <div className="border-t p-4 space-y-2">
+            {validation.hasErrors && (
+              <p className="text-center text-xs font-medium text-destructive">Corrige os erros antes de guardar.</p>
+            )}
+            <Button onClick={saveRecipe} disabled={busy || validation.hasErrors} className="w-full rounded-full" size="lg">
               <Save className="mr-1 h-4 w-4" />{busy ? "A guardar…" : "Guardar receita"}
             </Button>
           </div>
