@@ -145,7 +145,7 @@ function CalculatorPage() {
 
     return { errors, warnings, hasErrors: errors.length > 0 };
   }, [laborMin, machineMin, units, used, ingredients, profile, vocab]);
-
+  function addUsed() {
     if (ingredients.length === 0) return;
     setUsed((u) => [...u, { ingredient_id: ingredients[0].id, quantity: 0 }]);
   }
