@@ -86,7 +86,66 @@ function CalculatorPage() {
     };
   }, [laborMin, machineMin, used, ingredients, profile, fixedCostsTotal, units]);
 
-  function addUsed() {
+  const validation = useMemo(() => {
+    const errors: { msg: string; fix?: React.ReactNode }[] = [];
+    const warnings: { msg: string; fix?: React.ReactNode }[] = [];
+
+    const lm = parseFloat(laborMin);
+    const mm = parseFloat(machineMin);
+    const u = parseFloat(units);
+
+    if (laborMin !== "" && (isNaN(lm) || lm < 0)) errors.push({ msg: "Os minutos de mão-de-obra não podem ser negativos." });
+    if (machineMin !== "" && (isNaN(mm) || mm < 0)) errors.push({ msg: `Os minutos de ${vocab.machine} não podem ser negativos.` });
+    if (units !== "" && (isNaN(u) || u < 1)) errors.push({ msg: "As unidades produzidas têm de ser pelo menos 1." });
+
+    if ((parseFloat(laborMin) || 0) === 0 && (parseFloat(machineMin) || 0) === 0) {
+      warnings.push({ msg: "Não indicaste tempo de trabalho nem de máquina — o custo de mão-de-obra ficará a zero." });
+    }
+
+    if ((parseFloat(laborMin) || 0) > 0 && !(profile?.labor_rate_hour > 0)) {
+      warnings.push({
+        msg: "Não tens taxa de mão-de-obra (€/h) definida.",
+        fix: <Link to="/app/settings" className="font-medium underline">Definir nas Definições</Link>,
+      });
+    }
+    if ((parseFloat(machineMin) || 0) > 0 && !(profile?.machine_rate_hour > 0)) {
+      warnings.push({
+        msg: `Não tens taxa de ${vocab.machine} (€/h) definida.`,
+        fix: <Link to="/app/settings" className="font-medium underline">Definir nas Definições</Link>,
+      });
+    }
+
+    const ingMap = new Map(ingredients.map((i) => [i.id, i]));
+    const counts = new Map<string, number>();
+    used.forEach((x, idx) => {
+      const ing = ingMap.get(x.ingredient_id);
+      const label = ing?.name ?? `Linha ${idx + 1}`;
+      if (x.quantity < 0) errors.push({ msg: `"${label}": a quantidade usada não pode ser negativa.` });
+      if (x.quantity === 0) warnings.push({ msg: `"${label}": quantidade usada é 0 — não vai contar para o custo.` });
+      if (ing && x.quantity > Number(ing.package_quantity)) {
+        warnings.push({
+          msg: `"${label}": estás a usar ${x.quantity}${ing.unit} mas a embalagem tem apenas ${ing.package_quantity}${ing.unit}. Confirma se vais precisar de mais que uma embalagem.`,
+        });
+      }
+      counts.set(x.ingredient_id, (counts.get(x.ingredient_id) ?? 0) + 1);
+    });
+    counts.forEach((n, id) => {
+      if (n > 1) {
+        const ing = ingMap.get(id);
+        warnings.push({ msg: `"${ing?.name ?? "Item"}" aparece ${n} vezes — considera juntar numa só linha.` });
+      }
+    });
+
+    if ((profile?.profit_margin ?? 0) <= 0) {
+      warnings.push({
+        msg: "Margem de lucro está a 0% — o preço sugerido será igual ao custo.",
+        fix: <Link to="/app/settings" className="font-medium underline">Ajustar margem</Link>,
+      });
+    }
+
+    return { errors, warnings, hasErrors: errors.length > 0 };
+  }, [laborMin, machineMin, units, used, ingredients, profile, vocab]);
+
     if (ingredients.length === 0) return;
     setUsed((u) => [...u, { ingredient_id: ingredients[0].id, quantity: 0 }]);
   }
