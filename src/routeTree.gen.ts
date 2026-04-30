@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppOrdersRouteImport } from './routes/app.orders'
 import { Route as AppIngredientsRouteImport } from './routes/app.ingredients'
 import { Route as AppFixedCostsRouteImport } from './routes/app.fixed-costs'
 
@@ -31,9 +33,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOrdersRoute = AppOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
   getParentRoute: () => AppRoute,
 } as any)
 const AppIngredientsRoute = AppIngredientsRouteImport.update({
@@ -53,15 +65,18 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
+  '/app/orders': typeof AppOrdersRoute
   '/app/settings': typeof AppSettingsRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
+  '/app/orders': typeof AppOrdersRoute
   '/app/settings': typeof AppSettingsRoute
+  '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,7 +85,9 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
+  '/app/orders': typeof AppOrdersRoute
   '/app/settings': typeof AppSettingsRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,15 +97,18 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/fixed-costs'
     | '/app/ingredients'
+    | '/app/orders'
     | '/app/settings'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/app'
     | '/auth'
     | '/app/fixed-costs'
     | '/app/ingredients'
+    | '/app/orders'
     | '/app/settings'
+    | '/app'
   id:
     | '__root__'
     | '/'
@@ -96,7 +116,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app/fixed-costs'
     | '/app/ingredients'
+    | '/app/orders'
     | '/app/settings'
+    | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -128,11 +150,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/settings': {
       id: '/app/settings'
       path: '/settings'
       fullPath: '/app/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/orders': {
+      id: '/app/orders'
+      path: '/orders'
+      fullPath: '/app/orders'
+      preLoaderRoute: typeof AppOrdersRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/ingredients': {
@@ -155,13 +191,17 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppFixedCostsRoute: typeof AppFixedCostsRoute
   AppIngredientsRoute: typeof AppIngredientsRoute
+  AppOrdersRoute: typeof AppOrdersRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppFixedCostsRoute: AppFixedCostsRoute,
   AppIngredientsRoute: AppIngredientsRoute,
+  AppOrdersRoute: AppOrdersRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppIndexRoute: AppIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
