@@ -153,6 +153,10 @@ function CalculatorPage() {
   async function saveRecipe() {
     if (!user) return;
     if (!name.trim()) { toast.error("Dá um nome à receita"); return; }
+    if (validation.hasErrors) {
+      toast.error("Corrige os erros assinalados antes de guardar.");
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.from("recipes").insert({
       user_id: user.id,
