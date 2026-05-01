@@ -393,3 +393,50 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: string; 
     </div>
   );
 }
+
+type Step = { done: boolean; label: string; to: string; cta: string; primary?: boolean };
+
+function OnboardingSteps({ title, subtitle, steps }: { title: string; subtitle: string; steps: Step[] }) {
+  const completed = steps.filter((s) => s.done).length;
+  const next = steps.find((s) => !s.done) ?? steps[steps.length - 1];
+  return (
+    <div className="flex h-[220px] flex-col">
+      <div className="mb-2 flex items-baseline justify-between">
+        <div className="font-display text-sm font-semibold">{title}</div>
+        <span className="text-[11px] font-medium text-muted-foreground">
+          {completed}/{steps.length}
+        </span>
+      </div>
+      <p className="mb-3 text-xs text-muted-foreground">{subtitle}</p>
+      <ol className="flex-1 space-y-1.5 overflow-auto">
+        {steps.map((s, i) => {
+          const isNext = s === next && !s.done;
+          return (
+            <li key={i}>
+              <Link
+                to={s.to as any}
+                className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 text-sm transition hover:bg-muted/60 ${
+                  isNext ? "border-primary/50 bg-primary-soft/40" : "border-transparent"
+                }`}
+              >
+                {s.done ? (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                ) : (
+                  <Circle className={`h-4 w-4 shrink-0 ${isNext ? "text-primary" : "text-muted-foreground"}`} />
+                )}
+                <span className={`flex-1 truncate ${s.done ? "text-muted-foreground line-through" : ""}`}>
+                  {s.label}
+                </span>
+                {!s.done && (
+                  <span className={`text-[11px] font-semibold ${isNext ? "text-primary" : "text-muted-foreground"}`}>
+                    {s.cta} →
+                  </span>
+                )}
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
