@@ -14,6 +14,8 @@ import {
   Sparkles,
   ArrowRight,
   BarChart3,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
 import { fmtEUR } from "@/lib/format";
 import { VOCAB, type BusinessType } from "@/lib/business-types";
@@ -231,12 +233,25 @@ function HomePage() {
           {loading ? (
             <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">A carregar…</div>
           ) : !hasRevenue ? (
-            <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-center">
-              <p className="text-sm text-muted-foreground">Ainda sem encomendas registadas.</p>
-              <Link to="/app/orders">
-                <Button size="sm" variant="outline" className="rounded-full">Criar encomenda</Button>
-              </Link>
-            </div>
+            <OnboardingSteps
+              title="Cria a tua primeira encomenda"
+              subtitle="Em 2 passos vês a evolução das tuas vendas aqui."
+              steps={[
+                {
+                  done: stats.ingredients > 0,
+                  label: `Adiciona ${vocab.ingredients.toLowerCase()}`,
+                  to: "/app/ingredients",
+                  cta: "Adicionar",
+                },
+                {
+                  done: false,
+                  label: "Regista a primeira encomenda",
+                  to: "/app/orders",
+                  cta: "Nova encomenda",
+                  primary: true,
+                },
+              ]}
+            />
           ) : (
             <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -275,12 +290,31 @@ function HomePage() {
           {loading ? (
             <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">A carregar…</div>
           ) : !hasRecipes ? (
-            <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-center">
-              <p className="text-sm text-muted-foreground">Ainda não guardaste receitas.</p>
-              <Link to="/app/calculator">
-                <Button size="sm" variant="outline" className="rounded-full">Abrir calculadora</Button>
-              </Link>
-            </div>
+            <OnboardingSteps
+              title="Cria a tua primeira receita"
+              subtitle="Vê de onde vem cada euro de custo nas tuas receitas."
+              steps={[
+                {
+                  done: stats.fixedCosts > 0,
+                  label: "Define os custos fixos mensais",
+                  to: "/app/fixed-costs",
+                  cta: "Adicionar",
+                },
+                {
+                  done: stats.ingredients > 0,
+                  label: `Adiciona ${vocab.ingredients.toLowerCase()}`,
+                  to: "/app/ingredients",
+                  cta: "Adicionar",
+                },
+                {
+                  done: false,
+                  label: `Calcula a primeira ${vocab.recipe.toLowerCase()}`,
+                  to: "/app/calculator",
+                  cta: "Calcular",
+                  primary: true,
+                },
+              ]}
+            />
           ) : (
             <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -356,6 +390,53 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: string; 
         <span className="text-[11px] font-medium uppercase tracking-wide">{label}</span>
       </div>
       <div className="mt-1 font-display text-lg font-bold">{value}</div>
+    </div>
+  );
+}
+
+type Step = { done: boolean; label: string; to: string; cta: string; primary?: boolean };
+
+function OnboardingSteps({ title, subtitle, steps }: { title: string; subtitle: string; steps: Step[] }) {
+  const completed = steps.filter((s) => s.done).length;
+  const next = steps.find((s) => !s.done) ?? steps[steps.length - 1];
+  return (
+    <div className="flex h-[220px] flex-col">
+      <div className="mb-2 flex items-baseline justify-between">
+        <div className="font-display text-sm font-semibold">{title}</div>
+        <span className="text-[11px] font-medium text-muted-foreground">
+          {completed}/{steps.length}
+        </span>
+      </div>
+      <p className="mb-3 text-xs text-muted-foreground">{subtitle}</p>
+      <ol className="flex-1 space-y-1.5 overflow-auto">
+        {steps.map((s, i) => {
+          const isNext = s === next && !s.done;
+          return (
+            <li key={i}>
+              <Link
+                to={s.to as any}
+                className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 text-sm transition hover:bg-muted/60 ${
+                  isNext ? "border-primary/50 bg-primary-soft/40" : "border-transparent"
+                }`}
+              >
+                {s.done ? (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                ) : (
+                  <Circle className={`h-4 w-4 shrink-0 ${isNext ? "text-primary" : "text-muted-foreground"}`} />
+                )}
+                <span className={`flex-1 truncate ${s.done ? "text-muted-foreground line-through" : ""}`}>
+                  {s.label}
+                </span>
+                {!s.done && (
+                  <span className={`text-[11px] font-semibold ${isNext ? "text-primary" : "text-muted-foreground"}`}>
+                    {s.cta} →
+                  </span>
+                )}
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }
