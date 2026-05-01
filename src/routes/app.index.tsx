@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -13,11 +13,44 @@ import {
   TrendingUp,
   Sparkles,
   ArrowRight,
+  BarChart3,
 } from "lucide-react";
 import { fmtEUR } from "@/lib/format";
 import { VOCAB, type BusinessType } from "@/lib/business-types";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 export const Route = createFileRoute("/app/")({ component: HomePage });
+
+type RecipeRow = {
+  id: string;
+  name: string;
+  total_cost: number;
+  suggested_price: number;
+  labor_cost: number;
+  machine_cost: number;
+  ingredient_cost: number;
+  fixed_cost_share: number;
+  created_at: string;
+};
+
+type OrderRow = {
+  status: string;
+  total_price: number;
+  total_cost: number;
+  decoration_cost: number;
+  created_at: string;
+};
 
 function HomePage() {
   const { user } = useAuth();
@@ -28,7 +61,9 @@ function HomePage() {
     pendingOrders: 0,
     monthRevenue: 0,
   });
-  const [recentRecipes, setRecentRecipes] = useState<any[]>([]);
+  const [recentRecipes, setRecentRecipes] = useState<RecipeRow[]>([]);
+  const [allRecipes, setAllRecipes] = useState<RecipeRow[]>([]);
+  const [allOrders, setAllOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,22 +74,36 @@ function HomePage() {
       startMonth.setDate(1);
       startMonth.setHours(0, 0, 0, 0);
 
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+      sixMonthsAgo.setDate(1);
+      sixMonthsAgo.setHours(0, 0, 0, 0);
+
       const [pRes, fcRes, ingRes, ordRes, recRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("fixed_costs").select("amount").eq("user_id", user.id),
         supabase.from("ingredients").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("orders").select("status,total_price,created_at").eq("user_id", user.id),
-        supabase.from("recipes").select("id,name,total_cost,suggested_price,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
+        supabase
+          .from("orders")
+          .select("status,total_price,total_cost,decoration_cost,created_at")
+          .eq("user_id", user.id)
+          .gte("created_at", sixMonthsAgo.toISOString()),
+        supabase
+          .from("recipes")
+          .select("id,name,total_cost,suggested_price,labor_cost,machine_cost,ingredient_cost,fixed_cost_share,created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
       ]);
 
       if (!alive) return;
       setProfile(pRes.data);
       const fixed = (fcRes.data ?? []).reduce((s, r: any) => s + Number(r.amount || 0), 0);
-      const orders = ordRes.data ?? [];
-      const pending = orders.filter((o: any) => o.status === "pendente").length;
+      const orders = (ordRes.data ?? []) as OrderRow[];
+      const recipes = (recRes.data ?? []) as RecipeRow[];
+      const pending = orders.filter((o) => o.status === "pendente").length;
       const monthRev = orders
-        .filter((o: any) => new Date(o.created_at) >= startMonth)
-        .reduce((s: number, o: any) => s + Number(o.total_price || 0), 0);
+        .filter((o) => new Date(o.created_at) >= startMonth)
+        .reduce((s, o) => s + Number(o.total_price || 0), 0);
 
       setStats({
         fixedCosts: fixed,
@@ -62,7 +111,9 @@ function HomePage() {
         pendingOrders: pending,
         monthRevenue: monthRev,
       });
-      setRecentRecipes(recRes.data ?? []);
+      setAllOrders(orders);
+      setAllRecipes(recipes);
+      setRecentRecipes(recipes.slice(0, 3));
       setLoading(false);
     })();
     return () => {
@@ -73,6 +124,41 @@ function HomePage() {
   const businessType = (profile?.business_type as BusinessType) || "outro";
   const vocab = VOCAB[businessType] ?? VOCAB.outro;
   const greeting = profile?.business_name || "Olá";
+
+  const revenueData = useMemo(() => {
+    const months: { key: string; label: string; receita: number }[] = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const label = d.toLocaleDateString("pt-PT", { month: "short" });
+      months.push({ key, label, receita: 0 });
+    }
+    for (const o of allOrders) {
+      const d = new Date(o.created_at);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const m = months.find((x) => x.key === key);
+      if (m) m.receita += Number(o.total_price || 0);
+    }
+    return months;
+  }, [allOrders]);
+
+  const costBreakdownData = useMemo(() => {
+    return allRecipes
+      .slice(0, 6)
+      .reverse()
+      .map((r) => ({
+        name: r.name.length > 14 ? r.name.slice(0, 13) + "…" : r.name,
+        "Mão-de-obra": Number(r.labor_cost || 0),
+        Máquina: Number(r.machine_cost || 0),
+        [vocab.ingredients]: Number(r.ingredient_cost || 0),
+        "Custos fixos": Number(r.fixed_cost_share || 0),
+      }));
+  }, [allRecipes, vocab.ingredients]);
+
+  const hasRevenue = revenueData.some((m) => m.receita > 0);
+  const hasRecipes = costBreakdownData.length > 0;
+
 
   const shortcuts: Array<{ to: string; label: string; desc: string; icon: any; primary?: boolean }> = [
     { to: "/app/calculator", label: "Calculadora", desc: `Calcular custo de ${vocab.recipe.toLowerCase()}`, icon: Calculator, primary: true },
@@ -129,6 +215,94 @@ function HomePage() {
             </Link>
           ))}
         </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <Card className="p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="rounded-xl bg-primary-soft p-2 text-primary">
+              <TrendingUp className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-display text-base font-semibold">Receita mensal</h3>
+              <p className="text-xs text-muted-foreground">Últimos 6 meses</p>
+            </div>
+          </div>
+          {loading ? (
+            <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">A carregar…</div>
+          ) : !hasRevenue ? (
+            <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-center">
+              <p className="text-sm text-muted-foreground">Ainda sem encomendas registadas.</p>
+              <Link to="/app/orders">
+                <Button size="sm" variant="outline" className="rounded-full">Criar encomenda</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="h-[220px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis tickFormatter={(v) => `${v}€`} tickLine={false} axisLine={false} fontSize={11} stroke="hsl(var(--muted-foreground))" width={48} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
+                    formatter={(v: any) => fmtEUR(Number(v))}
+                    labelStyle={{ fontWeight: 600 }}
+                  />
+                  <Area type="monotone" dataKey="receita" name="Receita" stroke="hsl(var(--primary))" strokeWidth={2.5} fill="url(#revFill)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </Card>
+
+        <Card className="p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="rounded-xl bg-primary-soft p-2 text-primary">
+              <BarChart3 className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-display text-base font-semibold">Quebra de custos por receita</h3>
+              <p className="text-xs text-muted-foreground">Últimas {costBreakdownData.length || 6} guardadas</p>
+            </div>
+          </div>
+          {loading ? (
+            <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">A carregar…</div>
+          ) : !hasRecipes ? (
+            <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-center">
+              <p className="text-sm text-muted-foreground">Ainda não guardaste receitas.</p>
+              <Link to="/app/calculator">
+                <Button size="sm" variant="outline" className="rounded-full">Abrir calculadora</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="h-[220px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={costBreakdownData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={10} stroke="hsl(var(--muted-foreground))" interval={0} />
+                  <YAxis tickFormatter={(v) => `${v}€`} tickLine={false} axisLine={false} fontSize={11} stroke="hsl(var(--muted-foreground))" width={48} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
+                    formatter={(v: any) => fmtEUR(Number(v))}
+                    labelStyle={{ fontWeight: 600 }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} iconType="circle" />
+                  <Bar dataKey="Mão-de-obra" stackId="c" fill="hsl(var(--primary))" />
+                  <Bar dataKey="Máquina" stackId="c" fill="hsl(var(--primary) / 0.65)" />
+                  <Bar dataKey={vocab.ingredients} stackId="c" fill="hsl(var(--primary) / 0.4)" />
+                  <Bar dataKey="Custos fixos" stackId="c" fill="hsl(var(--muted-foreground) / 0.4)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </Card>
       </section>
 
       <section>
