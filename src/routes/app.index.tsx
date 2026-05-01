@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -13,11 +13,44 @@ import {
   TrendingUp,
   Sparkles,
   ArrowRight,
+  BarChart3,
 } from "lucide-react";
 import { fmtEUR } from "@/lib/format";
 import { VOCAB, type BusinessType } from "@/lib/business-types";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 export const Route = createFileRoute("/app/")({ component: HomePage });
+
+type RecipeRow = {
+  id: string;
+  name: string;
+  total_cost: number;
+  suggested_price: number;
+  labor_cost: number;
+  machine_cost: number;
+  ingredient_cost: number;
+  fixed_cost_share: number;
+  created_at: string;
+};
+
+type OrderRow = {
+  status: string;
+  total_price: number;
+  total_cost: number;
+  decoration_cost: number;
+  created_at: string;
+};
 
 function HomePage() {
   const { user } = useAuth();
