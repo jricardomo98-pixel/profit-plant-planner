@@ -306,6 +306,8 @@ function HomePage() {
       </section>
 
       <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold">Receitas recentes</h2>
           <Link to="/app/calculator" className="text-sm font-medium text-primary hover:underline">
             Nova
           </Link>
