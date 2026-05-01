@@ -217,9 +217,95 @@ function HomePage() {
         </div>
       </section>
 
+      <section className="grid gap-4 lg:grid-cols-2">
+        <Card className="p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="rounded-xl bg-primary-soft p-2 text-primary">
+              <TrendingUp className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-display text-base font-semibold">Receita mensal</h3>
+              <p className="text-xs text-muted-foreground">Últimos 6 meses</p>
+            </div>
+          </div>
+          {loading ? (
+            <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">A carregar…</div>
+          ) : !hasRevenue ? (
+            <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-center">
+              <p className="text-sm text-muted-foreground">Ainda sem encomendas registadas.</p>
+              <Link to="/app/orders">
+                <Button size="sm" variant="outline" className="rounded-full">Criar encomenda</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="h-[220px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis tickFormatter={(v) => `${v}€`} tickLine={false} axisLine={false} fontSize={11} stroke="hsl(var(--muted-foreground))" width={48} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
+                    formatter={(v: any) => fmtEUR(Number(v))}
+                    labelStyle={{ fontWeight: 600 }}
+                  />
+                  <Area type="monotone" dataKey="receita" name="Receita" stroke="hsl(var(--primary))" strokeWidth={2.5} fill="url(#revFill)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </Card>
+
+        <Card className="p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="rounded-xl bg-primary-soft p-2 text-primary">
+              <BarChart3 className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="font-display text-base font-semibold">Quebra de custos por receita</h3>
+              <p className="text-xs text-muted-foreground">Últimas {costBreakdownData.length || 6} guardadas</p>
+            </div>
+          </div>
+          {loading ? (
+            <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">A carregar…</div>
+          ) : !hasRecipes ? (
+            <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-center">
+              <p className="text-sm text-muted-foreground">Ainda não guardaste receitas.</p>
+              <Link to="/app/calculator">
+                <Button size="sm" variant="outline" className="rounded-full">Abrir calculadora</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="h-[220px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={costBreakdownData} margin={{ top: 5, right: 8, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={10} stroke="hsl(var(--muted-foreground))" interval={0} />
+                  <YAxis tickFormatter={(v) => `${v}€`} tickLine={false} axisLine={false} fontSize={11} stroke="hsl(var(--muted-foreground))" width={48} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
+                    formatter={(v: any) => fmtEUR(Number(v))}
+                    labelStyle={{ fontWeight: 600 }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} iconType="circle" />
+                  <Bar dataKey="Mão-de-obra" stackId="c" fill="hsl(var(--primary))" />
+                  <Bar dataKey="Máquina" stackId="c" fill="hsl(var(--primary) / 0.65)" />
+                  <Bar dataKey={vocab.ingredients} stackId="c" fill="hsl(var(--primary) / 0.4)" />
+                  <Bar dataKey="Custos fixos" stackId="c" fill="hsl(var(--muted-foreground) / 0.4)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </Card>
+      </section>
+
       <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold">Receitas recentes</h2>
           <Link to="/app/calculator" className="text-sm font-medium text-primary hover:underline">
             Nova
           </Link>
