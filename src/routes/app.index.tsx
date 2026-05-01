@@ -61,7 +61,9 @@ function HomePage() {
     pendingOrders: 0,
     monthRevenue: 0,
   });
-  const [recentRecipes, setRecentRecipes] = useState<any[]>([]);
+  const [recentRecipes, setRecentRecipes] = useState<RecipeRow[]>([]);
+  const [allRecipes, setAllRecipes] = useState<RecipeRow[]>([]);
+  const [allOrders, setAllOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -72,22 +74,36 @@ function HomePage() {
       startMonth.setDate(1);
       startMonth.setHours(0, 0, 0, 0);
 
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+      sixMonthsAgo.setDate(1);
+      sixMonthsAgo.setHours(0, 0, 0, 0);
+
       const [pRes, fcRes, ingRes, ordRes, recRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("fixed_costs").select("amount").eq("user_id", user.id),
         supabase.from("ingredients").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("orders").select("status,total_price,created_at").eq("user_id", user.id),
-        supabase.from("recipes").select("id,name,total_cost,suggested_price,created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
+        supabase
+          .from("orders")
+          .select("status,total_price,total_cost,decoration_cost,created_at")
+          .eq("user_id", user.id)
+          .gte("created_at", sixMonthsAgo.toISOString()),
+        supabase
+          .from("recipes")
+          .select("id,name,total_cost,suggested_price,labor_cost,machine_cost,ingredient_cost,fixed_cost_share,created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
       ]);
 
       if (!alive) return;
       setProfile(pRes.data);
       const fixed = (fcRes.data ?? []).reduce((s, r: any) => s + Number(r.amount || 0), 0);
-      const orders = ordRes.data ?? [];
-      const pending = orders.filter((o: any) => o.status === "pendente").length;
+      const orders = (ordRes.data ?? []) as OrderRow[];
+      const recipes = (recRes.data ?? []) as RecipeRow[];
+      const pending = orders.filter((o) => o.status === "pendente").length;
       const monthRev = orders
-        .filter((o: any) => new Date(o.created_at) >= startMonth)
-        .reduce((s: number, o: any) => s + Number(o.total_price || 0), 0);
+        .filter((o) => new Date(o.created_at) >= startMonth)
+        .reduce((s, o) => s + Number(o.total_price || 0), 0);
 
       setStats({
         fixedCosts: fixed,
@@ -95,7 +111,9 @@ function HomePage() {
         pendingOrders: pending,
         monthRevenue: monthRev,
       });
-      setRecentRecipes(recRes.data ?? []);
+      setAllOrders(orders);
+      setAllRecipes(recipes);
+      setRecentRecipes(recipes.slice(0, 3));
       setLoading(false);
     })();
     return () => {
@@ -106,6 +124,41 @@ function HomePage() {
   const businessType = (profile?.business_type as BusinessType) || "outro";
   const vocab = VOCAB[businessType] ?? VOCAB.outro;
   const greeting = profile?.business_name || "Olá";
+
+  const revenueData = useMemo(() => {
+    const months: { key: string; label: string; receita: number }[] = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const label = d.toLocaleDateString("pt-PT", { month: "short" });
+      months.push({ key, label, receita: 0 });
+    }
+    for (const o of allOrders) {
+      const d = new Date(o.created_at);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const m = months.find((x) => x.key === key);
+      if (m) m.receita += Number(o.total_price || 0);
+    }
+    return months;
+  }, [allOrders]);
+
+  const costBreakdownData = useMemo(() => {
+    return allRecipes
+      .slice(0, 6)
+      .reverse()
+      .map((r) => ({
+        name: r.name.length > 14 ? r.name.slice(0, 13) + "…" : r.name,
+        "Mão-de-obra": Number(r.labor_cost || 0),
+        Máquina: Number(r.machine_cost || 0),
+        [vocab.ingredients]: Number(r.ingredient_cost || 0),
+        "Custos fixos": Number(r.fixed_cost_share || 0),
+      }));
+  }, [allRecipes, vocab.ingredients]);
+
+  const hasRevenue = revenueData.some((m) => m.receita > 0);
+  const hasRecipes = costBreakdownData.length > 0;
+
 
   const shortcuts: Array<{ to: string; label: string; desc: string; icon: any; primary?: boolean }> = [
     { to: "/app/calculator", label: "Calculadora", desc: `Calcular custo de ${vocab.recipe.toLowerCase()}`, icon: Calculator, primary: true },
