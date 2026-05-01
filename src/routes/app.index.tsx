@@ -74,12 +74,12 @@ function HomePage() {
   const vocab = VOCAB[businessType] ?? VOCAB.outro;
   const greeting = profile?.business_name || "Olá";
 
-  const shortcuts = [
+  const shortcuts: Array<{ to: string; label: string; desc: string; icon: any; primary?: boolean }> = [
     { to: "/app/calculator", label: "Calculadora", desc: `Calcular custo de ${vocab.recipe.toLowerCase()}`, icon: Calculator, primary: true },
     { to: "/app/orders", label: "Encomendas", desc: "Gerir encomendas e clientes", icon: ClipboardList },
     { to: "/app/ingredients", label: vocab.ingredients, desc: `Gerir ${vocab.ingredients.toLowerCase()} e preços`, icon: Boxes },
     { to: "/app/fixed-costs", label: "Custos fixos", desc: "Renda, luz, água…", icon: Wallet },
-  ] as const;
+  ];
 
   return (
     <div className="space-y-6 pb-4">
