@@ -290,12 +290,31 @@ function HomePage() {
           {loading ? (
             <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">A carregar…</div>
           ) : !hasRecipes ? (
-            <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-center">
-              <p className="text-sm text-muted-foreground">Ainda não guardaste receitas.</p>
-              <Link to="/app/calculator">
-                <Button size="sm" variant="outline" className="rounded-full">Abrir calculadora</Button>
-              </Link>
-            </div>
+            <OnboardingSteps
+              title="Cria a tua primeira receita"
+              subtitle="Vê de onde vem cada euro de custo nas tuas receitas."
+              steps={[
+                {
+                  done: stats.fixedCosts > 0,
+                  label: "Define os custos fixos mensais",
+                  to: "/app/fixed-costs",
+                  cta: "Adicionar",
+                },
+                {
+                  done: stats.ingredients > 0,
+                  label: `Adiciona ${vocab.ingredients.toLowerCase()}`,
+                  to: "/app/ingredients",
+                  cta: "Adicionar",
+                },
+                {
+                  done: false,
+                  label: `Calcula a primeira ${vocab.recipe.toLowerCase()}`,
+                  to: "/app/calculator",
+                  cta: "Calcular",
+                  primary: true,
+                },
+              ]}
+            />
           ) : (
             <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
