@@ -14,6 +14,8 @@ import {
   Sparkles,
   ArrowRight,
   BarChart3,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
 import { fmtEUR } from "@/lib/format";
 import { VOCAB, type BusinessType } from "@/lib/business-types";
@@ -231,12 +233,25 @@ function HomePage() {
           {loading ? (
             <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">A carregar…</div>
           ) : !hasRevenue ? (
-            <div className="flex h-[220px] flex-col items-center justify-center gap-2 text-center">
-              <p className="text-sm text-muted-foreground">Ainda sem encomendas registadas.</p>
-              <Link to="/app/orders">
-                <Button size="sm" variant="outline" className="rounded-full">Criar encomenda</Button>
-              </Link>
-            </div>
+            <OnboardingSteps
+              title="Cria a tua primeira encomenda"
+              subtitle="Em 2 passos vês a evolução das tuas vendas aqui."
+              steps={[
+                {
+                  done: stats.ingredients > 0,
+                  label: `Adiciona ${vocab.ingredients.toLowerCase()}`,
+                  to: "/app/ingredients",
+                  cta: "Adicionar",
+                },
+                {
+                  done: false,
+                  label: "Regista a primeira encomenda",
+                  to: "/app/orders",
+                  cta: "Nova encomenda",
+                  primary: true,
+                },
+              ]}
+            />
           ) : (
             <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
