@@ -17,6 +17,7 @@ import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppOrdersRouteImport } from './routes/app.orders'
 import { Route as AppIngredientsRouteImport } from './routes/app.ingredients'
 import { Route as AppFixedCostsRouteImport } from './routes/app.fixed-costs'
+import { Route as AppCalculatorRouteImport } from './routes/app.calculator'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -58,11 +59,17 @@ const AppFixedCostsRoute = AppFixedCostsRouteImport.update({
   path: '/fixed-costs',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCalculatorRoute = AppCalculatorRouteImport.update({
+  id: '/calculator',
+  path: '/calculator',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/app/calculator': typeof AppCalculatorRoute
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
   '/app/orders': typeof AppOrdersRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/app/calculator': typeof AppCalculatorRoute
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
   '/app/orders': typeof AppOrdersRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/app/calculator': typeof AppCalculatorRoute
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
   '/app/orders': typeof AppOrdersRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/app/calculator'
     | '/app/fixed-costs'
     | '/app/ingredients'
     | '/app/orders'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/app/calculator'
     | '/app/fixed-costs'
     | '/app/ingredients'
     | '/app/orders'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
+    | '/app/calculator'
     | '/app/fixed-costs'
     | '/app/ingredients'
     | '/app/orders'
@@ -185,10 +197,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFixedCostsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/calculator': {
+      id: '/app/calculator'
+      path: '/calculator'
+      fullPath: '/app/calculator'
+      preLoaderRoute: typeof AppCalculatorRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppCalculatorRoute: typeof AppCalculatorRoute
   AppFixedCostsRoute: typeof AppFixedCostsRoute
   AppIngredientsRoute: typeof AppIngredientsRoute
   AppOrdersRoute: typeof AppOrdersRoute
@@ -197,6 +217,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppCalculatorRoute: AppCalculatorRoute,
   AppFixedCostsRoute: AppFixedCostsRoute,
   AppIngredientsRoute: AppIngredientsRoute,
   AppOrdersRoute: AppOrdersRoute,
