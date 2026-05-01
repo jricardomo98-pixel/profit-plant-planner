@@ -115,7 +115,7 @@ function HomePage() {
         <h2 className="mb-3 font-display text-lg font-semibold">Atalhos</h2>
         <div className="grid gap-3 md:grid-cols-2">
           {shortcuts.map((s) => (
-            <Link key={s.to} to={s.to}>
+            <Link key={s.to} to={s.to as any}>
               <Card className={`group flex items-center gap-4 p-4 transition hover:-translate-y-0.5 hover:shadow-md ${s.primary ? "border-primary/40 bg-primary-soft/40" : ""}`}>
                 <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${s.primary ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
                   <s.icon className="h-5 w-5" />
