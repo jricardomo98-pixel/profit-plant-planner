@@ -9,8 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SuspendedRouteImport } from './routes/suspended'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
@@ -19,6 +21,11 @@ import { Route as AppIngredientsRouteImport } from './routes/app.ingredients'
 import { Route as AppFixedCostsRouteImport } from './routes/app.fixed-costs'
 import { Route as AppCalculatorRouteImport } from './routes/app.calculator'
 
+const SuspendedRoute = SuspendedRouteImport.update({
+  id: '/suspended',
+  path: '/suspended',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -27,6 +34,11 @@ const AuthRoute = AuthRouteImport.update({
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -67,8 +79,10 @@ const AppCalculatorRoute = AppCalculatorRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/suspended': typeof SuspendedRoute
   '/app/calculator': typeof AppCalculatorRoute
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
@@ -78,7 +92,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/suspended': typeof SuspendedRoute
   '/app/calculator': typeof AppCalculatorRoute
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
@@ -89,8 +105,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/suspended': typeof SuspendedRoute
   '/app/calculator': typeof AppCalculatorRoute
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
@@ -102,8 +120,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/app'
     | '/auth'
+    | '/suspended'
     | '/app/calculator'
     | '/app/fixed-costs'
     | '/app/ingredients'
@@ -113,7 +133,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/auth'
+    | '/suspended'
     | '/app/calculator'
     | '/app/fixed-costs'
     | '/app/ingredients'
@@ -123,8 +145,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/app'
     | '/auth'
+    | '/suspended'
     | '/app/calculator'
     | '/app/fixed-costs'
     | '/app/ingredients'
@@ -135,12 +159,21 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
+  SuspendedRoute: typeof SuspendedRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/suspended': {
+      id: '/suspended'
+      path: '/suspended'
+      fullPath: '/suspended'
+      preLoaderRoute: typeof SuspendedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -153,6 +186,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -229,8 +269,10 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
+  SuspendedRoute: SuspendedRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
