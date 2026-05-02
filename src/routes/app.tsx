@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Home, Calculator, Wallet, Boxes, ClipboardList, LogOut, Settings } from "lucide-react";
+import { Home, Calculator, Wallet, Boxes, ClipboardList, LogOut, Settings, Shield } from "lucide-react";
 import { OnboardingDialog } from "@/components/OnboardingDialog";
 import type { BusinessType } from "@/lib/business-types";
 
@@ -26,6 +26,7 @@ function AppShell() {
   const location = useLocation();
   const [profile, setProfile] = useState<any | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -35,14 +36,23 @@ function AppShell() {
     if (!user) return;
     let alive = true;
     (async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-      if (alive) {
-        setProfile(data);
-        setProfileLoading(false);
+      const [{ data: prof }, { data: roles }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", user.id),
+      ]);
+      if (!alive) return;
+      const admin = (roles ?? []).some((r: any) => r.role === "admin");
+      // Bloqueia utilizadores suspensos (exceto admins)
+      if (prof?.status === "suspended" && !admin) {
+        navigate({ to: "/suspended" });
+        return;
       }
+      setProfile(prof);
+      setIsAdmin(admin);
+      setProfileLoading(false);
     })();
     return () => { alive = false; };
-  }, [user]);
+  }, [user, navigate]);
 
   if (loading || !user || profileLoading) {
     return (
@@ -73,6 +83,11 @@ function AppShell() {
             <span className="font-display text-lg font-bold">Calculamus</span>
           </Link>
           <div className="flex items-center gap-1">
+            {isAdmin && (
+              <Link to="/admin">
+                <Button variant="ghost" size="icon" className="rounded-full" title="Admin"><Shield className="h-4 w-4" /></Button>
+              </Link>
+            )}
             <Link to="/app/settings">
               <Button variant="ghost" size="icon" className="rounded-full"><Settings className="h-4 w-4" /></Button>
             </Link>
