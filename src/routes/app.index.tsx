@@ -16,6 +16,7 @@ import {
   BarChart3,
   CheckCircle2,
   Circle,
+  Target,
 } from "lucide-react";
 import { fmtEUR } from "@/lib/format";
 import { VOCAB, type BusinessType } from "@/lib/business-types";
