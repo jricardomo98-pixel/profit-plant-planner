@@ -33,6 +33,8 @@ function CalculatorPage() {
   const [profile, setProfile] = useState<any | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [fixedCostsTotal, setFixedCostsTotal] = useState(0);
+  const [recipesCount, setRecipesCount] = useState(0);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const [name, setName] = useState("");
   const [laborMin, setLaborMin] = useState("");
@@ -41,17 +43,23 @@ function CalculatorPage() {
   const [units, setUnits] = useState("1"); // unidades produzidas por receita
   const [busy, setBusy] = useState(false);
 
+  const FREE_LIMIT = 3;
+  const isFree = profile?.plan !== "pro";
+  const atLimit = isFree && recipesCount >= FREE_LIMIT;
+
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: p }, { data: ing }, { data: fc }] = await Promise.all([
+      const [{ data: p }, { data: ing }, { data: fc }, { count }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("ingredients").select("*").eq("user_id", user.id).order("name"),
         supabase.from("fixed_costs").select("amount").eq("user_id", user.id),
+        supabase.from("recipes").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
       setProfile(p);
       setIngredients((ing as Ingredient[]) ?? []);
       setFixedCostsTotal((fc ?? []).reduce((s: number, r: any) => s + Number(r.amount), 0));
+      setRecipesCount(count ?? 0);
     })();
   }, [user]);
 
