@@ -198,6 +198,14 @@ function HomePage() {
           <StatCard label="Encomendas pendentes" value={loading ? "—" : String(stats.pendingOrders)} icon={ClipboardList} />
           <StatCard label="Receita do mês" value={loading ? "—" : fmtEUR(stats.monthRevenue)} icon={TrendingUp} />
         </div>
+
+        <BreakEvenCard
+          loading={loading}
+          fixedCosts={stats.fixedCosts}
+          monthRevenue={stats.monthRevenue}
+          profitMargin={Number(profile?.profit_margin ?? 0)}
+          monthlyWorkHours={Number(profile?.monthly_work_hours ?? 0)}
+        />
       </section>
 
       <section>
