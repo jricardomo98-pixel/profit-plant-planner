@@ -167,6 +167,10 @@ function CalculatorPage() {
       toast.error("Corrige os erros assinalados antes de guardar.");
       return;
     }
+    if (atLimit) {
+      setShowLimitDialog(true);
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.from("recipes").insert({
       user_id: user.id,
@@ -184,6 +188,7 @@ function CalculatorPage() {
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Receita guardada!");
+    setRecipesCount((c) => c + 1);
     setName(""); setLaborMin(""); setMachineMin(""); setUsed([]); setUnits("1");
   }
 
