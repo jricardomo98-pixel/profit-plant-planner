@@ -77,7 +77,7 @@ function AdminPage() {
     if (checking) return;
     (async () => {
       const [{ data: profs }, { data: recs }, { data: ords }, { data: setts }] = await Promise.all([
-        supabase.from("profiles").select("id,email,display_name,business_name,business_type,status,trial_ends_at,created_at").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("id,email,display_name,business_name,business_type,status,plan,trial_ends_at,created_at").order("created_at", { ascending: false }),
         supabase.from("recipes").select("user_id,created_at"),
         supabase.from("orders").select("total_price,created_at"),
         supabase.from("settings").select("id,subscription_price").limit(1).maybeSingle(),
