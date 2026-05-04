@@ -349,12 +349,42 @@ function CalculatorPage() {
             {validation.hasErrors && (
               <p className="text-center text-xs font-medium text-destructive">Corrige os erros antes de guardar.</p>
             )}
+            {atLimit && (
+              <p className="text-center text-xs font-medium text-destructive">
+                Limite do plano gratuito atingido.
+              </p>
+            )}
             <Button onClick={saveRecipe} disabled={busy || validation.hasErrors} className="w-full rounded-full" size="lg">
-              <Save className="mr-1 h-4 w-4" />{busy ? "A guardar…" : "Guardar receita"}
+              {atLimit ? <Lock className="mr-1 h-4 w-4" /> : <Save className="mr-1 h-4 w-4" />}
+              {busy ? "A guardar…" : atLimit ? "Fazer upgrade para guardar" : "Guardar receita"}
             </Button>
           </div>
         </Card>
       </aside>
+
+      <Dialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center font-display text-xl">
+              Atingiste o limite do plano gratuito
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Faz upgrade para Pro e guarda receitas ilimitadas. Continua a calcular sem nunca perder o trabalho.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center">
+            <Button variant="outline" onClick={() => setShowLimitDialog(false)}>Agora não</Button>
+            <Link to="/pricing">
+              <Button className="w-full rounded-full">
+                <Sparkles className="mr-1 h-4 w-4" /> Ver planos
+              </Button>
+            </Link>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
