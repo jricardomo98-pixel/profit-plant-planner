@@ -299,6 +299,17 @@ function AdminPage() {
                             </Select>
                           </TableCell>
                           <TableCell>
+                            <Button
+                              size="sm"
+                              variant={p.plan === "pro" ? "default" : "outline"}
+                              className="h-8 gap-1 rounded-full"
+                              onClick={() => updateProfile(p.id, { plan: p.plan === "pro" ? "free" : "pro" })}
+                              title="Clica para alternar plano"
+                            >
+                              {p.plan === "pro" ? "Pro" : "Free"}
+                            </Button>
+                          </TableCell>
+                          <TableCell>
                             <Input
                               type="date"
                               defaultValue={trialDate}
