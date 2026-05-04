@@ -34,6 +34,7 @@ type ProfileRow = {
   business_name: string | null;
   business_type: string | null;
   status: string;
+  plan: string;
   trial_ends_at: string | null;
   created_at: string;
 };
@@ -76,7 +77,7 @@ function AdminPage() {
     if (checking) return;
     (async () => {
       const [{ data: profs }, { data: recs }, { data: ords }, { data: setts }] = await Promise.all([
-        supabase.from("profiles").select("id,email,display_name,business_name,business_type,status,trial_ends_at,created_at").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("id,email,display_name,business_name,business_type,status,plan,trial_ends_at,created_at").order("created_at", { ascending: false }),
         supabase.from("recipes").select("user_id,created_at"),
         supabase.from("orders").select("total_price,created_at"),
         supabase.from("settings").select("id,subscription_price").limit(1).maybeSingle(),
@@ -262,6 +263,7 @@ function AdminPage() {
                       <TableHead>Negócio</TableHead>
                       <TableHead>Registo</TableHead>
                       <TableHead>Estado</TableHead>
+                      <TableHead>Plano</TableHead>
                       <TableHead>Trial até</TableHead>
                       <TableHead className="text-right">Receitas</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
@@ -269,7 +271,7 @@ function AdminPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredProfiles.length === 0 && (
-                      <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Sem utilizadores</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">Sem utilizadores</TableCell></TableRow>
                     )}
                     {filteredProfiles.map((p) => {
                       const trialDate = p.trial_ends_at ? p.trial_ends_at.slice(0, 10) : "";
@@ -295,6 +297,17 @@ function AdminPage() {
                                 <SelectItem value="suspended">Suspenso</SelectItem>
                               </SelectContent>
                             </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant={p.plan === "pro" ? "default" : "outline"}
+                              className="h-8 gap-1 rounded-full"
+                              onClick={() => updateProfile(p.id, { plan: p.plan === "pro" ? "free" : "pro" })}
+                              title="Clica para alternar plano"
+                            >
+                              {p.plan === "pro" ? "Pro" : "Free"}
+                            </Button>
                           </TableCell>
                           <TableCell>
                             <Input

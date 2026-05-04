@@ -131,6 +131,7 @@ export type Database = {
           machine_rate_hour: number
           monthly_work_hours: number
           onboarded: boolean
+          plan: string
           profit_margin: number
           status: string
           trial_ends_at: string | null
@@ -147,6 +148,7 @@ export type Database = {
           machine_rate_hour?: number
           monthly_work_hours?: number
           onboarded?: boolean
+          plan?: string
           profit_margin?: number
           status?: string
           trial_ends_at?: string | null
@@ -163,6 +165,7 @@ export type Database = {
           machine_rate_hour?: number
           monthly_work_hours?: number
           onboarded?: boolean
+          plan?: string
           profit_margin?: number
           status?: string
           trial_ends_at?: string | null

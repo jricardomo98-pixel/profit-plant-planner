@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Calculator, Save, Clock, Flame, AlertTriangle, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Plus, Trash2, Calculator, Save, Clock, Flame, AlertTriangle, AlertCircle, CheckCircle2, Sparkles, Lock } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { fmtEUR, round2 } from "@/lib/format";
 import { VOCAB, type BusinessType } from "@/lib/business-types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -31,6 +33,8 @@ function CalculatorPage() {
   const [profile, setProfile] = useState<any | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [fixedCostsTotal, setFixedCostsTotal] = useState(0);
+  const [recipesCount, setRecipesCount] = useState(0);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const [name, setName] = useState("");
   const [laborMin, setLaborMin] = useState("");
@@ -39,17 +43,23 @@ function CalculatorPage() {
   const [units, setUnits] = useState("1"); // unidades produzidas por receita
   const [busy, setBusy] = useState(false);
 
+  const FREE_LIMIT = 3;
+  const isFree = profile?.plan !== "pro";
+  const atLimit = isFree && recipesCount >= FREE_LIMIT;
+
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: p }, { data: ing }, { data: fc }] = await Promise.all([
+      const [{ data: p }, { data: ing }, { data: fc }, { count }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
         supabase.from("ingredients").select("*").eq("user_id", user.id).order("name"),
         supabase.from("fixed_costs").select("amount").eq("user_id", user.id),
+        supabase.from("recipes").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
       setProfile(p);
       setIngredients((ing as Ingredient[]) ?? []);
       setFixedCostsTotal((fc ?? []).reduce((s: number, r: any) => s + Number(r.amount), 0));
+      setRecipesCount(count ?? 0);
     })();
   }, [user]);
 
@@ -157,6 +167,10 @@ function CalculatorPage() {
       toast.error("Corrige os erros assinalados antes de guardar.");
       return;
     }
+    if (atLimit) {
+      setShowLimitDialog(true);
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.from("recipes").insert({
       user_id: user.id,
@@ -174,6 +188,7 @@ function CalculatorPage() {
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Receita guardada!");
+    setRecipesCount((c) => c + 1);
     setName(""); setLaborMin(""); setMachineMin(""); setUsed([]); setUnits("1");
   }
 
@@ -182,11 +197,24 @@ function CalculatorPage() {
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
       <div className="space-y-5">
-        <header>
-          <h1 className="font-display text-2xl font-bold md:text-3xl">Calculadora de custos</h1>
-          <p className="text-sm text-muted-foreground capitalize">
-            Calcula o custo real de cada {vocab.product}.
-          </p>
+        <header className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="font-display text-2xl font-bold md:text-3xl">Calculadora de custos</h1>
+            <p className="text-sm text-muted-foreground capitalize">
+              Calcula o custo real de cada {vocab.product}.
+            </p>
+          </div>
+          {isFree && (
+            <Link to="/pricing" className="shrink-0">
+              <Badge
+                variant={atLimit ? "destructive" : "secondary"}
+                className="gap-1.5 rounded-full px-3 py-1 text-xs"
+              >
+                {atLimit ? <Lock className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
+                {Math.min(recipesCount, FREE_LIMIT)} de {FREE_LIMIT} receitas usadas
+              </Badge>
+            </Link>
+          )}
         </header>
 
         <Card className="space-y-4 p-5">
@@ -321,12 +349,42 @@ function CalculatorPage() {
             {validation.hasErrors && (
               <p className="text-center text-xs font-medium text-destructive">Corrige os erros antes de guardar.</p>
             )}
+            {atLimit && (
+              <p className="text-center text-xs font-medium text-destructive">
+                Limite do plano gratuito atingido.
+              </p>
+            )}
             <Button onClick={saveRecipe} disabled={busy || validation.hasErrors} className="w-full rounded-full" size="lg">
-              <Save className="mr-1 h-4 w-4" />{busy ? "A guardar…" : "Guardar receita"}
+              {atLimit ? <Lock className="mr-1 h-4 w-4" /> : <Save className="mr-1 h-4 w-4" />}
+              {busy ? "A guardar…" : atLimit ? "Fazer upgrade para guardar" : "Guardar receita"}
             </Button>
           </div>
         </Card>
       </aside>
+
+      <Dialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center font-display text-xl">
+              Atingiste o limite do plano gratuito
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Faz upgrade para Pro e guarda receitas ilimitadas. Continua a calcular sem nunca perder o trabalho.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center">
+            <Button variant="outline" onClick={() => setShowLimitDialog(false)}>Agora não</Button>
+            <Link to="/pricing">
+              <Button className="w-full rounded-full">
+                <Sparkles className="mr-1 h-4 w-4" /> Ver planos
+              </Button>
+            </Link>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
