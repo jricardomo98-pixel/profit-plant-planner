@@ -263,6 +263,7 @@ function AdminPage() {
                       <TableHead>Negócio</TableHead>
                       <TableHead>Registo</TableHead>
                       <TableHead>Estado</TableHead>
+                      <TableHead>Plano</TableHead>
                       <TableHead>Trial até</TableHead>
                       <TableHead className="text-right">Receitas</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
@@ -270,7 +271,7 @@ function AdminPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredProfiles.length === 0 && (
-                      <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">Sem utilizadores</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">Sem utilizadores</TableCell></TableRow>
                     )}
                     {filteredProfiles.map((p) => {
                       const trialDate = p.trial_ends_at ? p.trial_ends_at.slice(0, 10) : "";
