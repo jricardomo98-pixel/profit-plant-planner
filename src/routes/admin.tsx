@@ -34,6 +34,7 @@ type ProfileRow = {
   business_name: string | null;
   business_type: string | null;
   status: string;
+  plan: string;
   trial_ends_at: string | null;
   created_at: string;
 };
