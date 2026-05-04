@@ -391,6 +391,99 @@ function HomePage() {
   );
 }
 
+function BreakEvenCard({
+  loading,
+  fixedCosts,
+  monthRevenue,
+  profitMargin,
+  monthlyWorkHours,
+}: {
+  loading: boolean;
+  fixedCosts: number;
+  monthRevenue: number;
+  profitMargin: number;
+  monthlyWorkHours: number;
+}) {
+  const margin = profitMargin > 0 ? profitMargin : 30;
+  const breakEven = margin > 0 ? fixedCosts / (margin / 100) : 0;
+  const workDays = Math.max(1, Math.round((monthlyWorkHours || 0) / 8));
+  const perDay = breakEven / workDays;
+  const reached = monthRevenue >= breakEven && breakEven > 0;
+  const remaining = Math.max(0, breakEven - monthRevenue);
+  const progress = breakEven > 0 ? Math.min(100, (monthRevenue / breakEven) * 100) : 0;
+
+  if (loading) {
+    return (
+      <div className="mt-3 rounded-2xl border bg-background/60 p-4 text-sm text-muted-foreground">
+        A calcular break-even…
+      </div>
+    );
+  }
+
+  if (fixedCosts <= 0) {
+    return (
+      <div className="mt-3 rounded-2xl border bg-background/60 p-4">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Target className="h-3.5 w-3.5" />
+          <span className="text-[11px] font-medium uppercase tracking-wide">Break-even mensal</span>
+        </div>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Define os teus custos fixos para ver quanto precisas de faturar.
+        </p>
+        <Link to="/app/fixed-costs">
+          <Button size="sm" variant="outline" className="mt-3 rounded-full">
+            Adicionar custos fixos
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`mt-3 rounded-2xl border p-4 ${
+        reached ? "border-emerald-500/40 bg-emerald-500/10" : "bg-background/60"
+      }`}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Target className="h-3.5 w-3.5" />
+            <span className="text-[11px] font-medium uppercase tracking-wide">Break-even mensal</span>
+          </div>
+          <div className="mt-1 flex items-baseline gap-2">
+            <span className="font-display text-xl font-bold">{fmtEUR(breakEven)}</span>
+            <span className="text-xs text-muted-foreground">
+              · {fmtEUR(perDay)}/dia ({workDays} dias)
+            </span>
+          </div>
+        </div>
+        <div className="text-right">
+          {reached ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Break-even atingido
+            </span>
+          ) : (
+            <div>
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Faltam</div>
+              <div className="font-display text-base font-bold text-primary">{fmtEUR(remaining)}</div>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full transition-all ${reached ? "bg-emerald-500" : "bg-primary"}`}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <div className="mt-1.5 text-[11px] text-muted-foreground">
+        Margem média {margin}% · Receita atual {fmtEUR(monthRevenue)}
+      </div>
+    </div>
+  );
+}
+
 function StatCard({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
   return (
     <div className="rounded-2xl border bg-background/60 p-3">
