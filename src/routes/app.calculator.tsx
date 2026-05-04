@@ -197,11 +197,24 @@ function CalculatorPage() {
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
       <div className="space-y-5">
-        <header>
-          <h1 className="font-display text-2xl font-bold md:text-3xl">Calculadora de custos</h1>
-          <p className="text-sm text-muted-foreground capitalize">
-            Calcula o custo real de cada {vocab.product}.
-          </p>
+        <header className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="font-display text-2xl font-bold md:text-3xl">Calculadora de custos</h1>
+            <p className="text-sm text-muted-foreground capitalize">
+              Calcula o custo real de cada {vocab.product}.
+            </p>
+          </div>
+          {isFree && (
+            <Link to="/pricing" className="shrink-0">
+              <Badge
+                variant={atLimit ? "destructive" : "secondary"}
+                className="gap-1.5 rounded-full px-3 py-1 text-xs"
+              >
+                {atLimit ? <Lock className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
+                {Math.min(recipesCount, FREE_LIMIT)} de {FREE_LIMIT} receitas usadas
+              </Badge>
+            </Link>
+          )}
         </header>
 
         <Card className="space-y-4 p-5">
