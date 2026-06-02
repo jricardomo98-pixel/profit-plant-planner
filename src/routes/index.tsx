@@ -15,6 +15,8 @@ import {
   Quote,
   ArrowRight,
 } from "lucide-react";
+import dashboardImg from "@/assets/dashboard.png.asset.json";
+import calculadoraImg from "@/assets/calculadora.png.asset.json";
 
 export const Route = createFileRoute("/")({
   component: Landing,
