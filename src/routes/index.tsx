@@ -156,10 +156,10 @@ function Landing() {
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           {[
-            { label: "[SCREENSHOT_DASHBOARD]", title: "Dashboard" },
-            { label: "[SCREENSHOT_CALCULADORA]", title: "Calculadora" },
+            { src: dashboardImg.url, alt: "Dashboard do Calculamus", title: "Dashboard" },
+            { src: calculadoraImg.url, alt: "Calculadora de custos", title: "Calculadora" },
           ].map((s) => (
-            <div key={s.label} className="overflow-hidden rounded-2xl border bg-card shadow-[var(--shadow-soft)]">
+            <div key={s.title} className="overflow-hidden rounded-2xl border bg-card shadow-[var(--shadow-soft)] transition hover:-translate-y-1 hover:shadow-lg">
               {/* Browser chrome */}
               <div className="flex items-center gap-2 border-b bg-muted/60 px-4 py-3">
                 <span className="h-3 w-3 rounded-full bg-destructive/70" />
@@ -167,10 +167,13 @@ function Landing() {
                 <span className="h-3 w-3 rounded-full bg-success/80" />
                 <div className="ml-3 hidden h-5 flex-1 rounded-md bg-background/80 sm:block" />
               </div>
-              <div className="flex aspect-[16/10] items-center justify-center bg-primary-soft/30">
-                <span className="rounded-md bg-card px-3 py-1.5 font-mono text-xs text-muted-foreground">
-                  {s.label}
-                </span>
+              <div className="bg-primary-soft/20">
+                <img
+                  src={s.src}
+                  alt={s.alt}
+                  loading="lazy"
+                  className="block h-auto w-full"
+                />
               </div>
             </div>
           ))}
