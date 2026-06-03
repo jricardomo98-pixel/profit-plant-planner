@@ -14,7 +14,12 @@ import {
 } from "@/components/ui/select";
 import { fmtEUR } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Users, UserCheck, Clock, Ban, Wallet, Coins, ChefHat, Save } from "lucide-react";
+import { ArrowLeft, Users, UserCheck, Clock, Ban, Wallet, Coins, ChefHat, Save, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis,
   CartesianGrid, Tooltip,
