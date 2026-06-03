@@ -14,7 +14,12 @@ import {
 } from "@/components/ui/select";
 import { fmtEUR } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Users, UserCheck, Clock, Ban, Wallet, Coins, ChefHat, Save } from "lucide-react";
+import { ArrowLeft, Users, UserCheck, Clock, Ban, Wallet, Coins, ChefHat, Save, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis,
   CartesianGrid, Tooltip,
@@ -170,6 +175,23 @@ function AdminPage() {
     }
   }
 
+  async function deleteUser(id: string) {
+    const prev = profiles;
+    setProfiles((curr) => curr.filter((p) => p.id !== id));
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess.session?.access_token;
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { user_id: id },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    if (error || (data as any)?.error) {
+      setProfiles(prev);
+      toast.error(`Erro ao eliminar: ${error?.message ?? (data as any)?.error}`);
+    } else {
+      toast.success("Conta eliminada");
+    }
+  }
+
   async function saveSubPrice() {
     setSavingPrice(true);
     let error;
@@ -322,11 +344,37 @@ function AdminPage() {
                           </TableCell>
                           <TableCell className="text-right">{recipesByUser.get(p.id) ?? 0}</TableCell>
                           <TableCell className="text-right">
-                            {p.status === "suspended" ? (
-                              <Button size="sm" variant="default" onClick={() => updateProfile(p.id, { status: "active" })}>Ativar</Button>
-                            ) : (
-                              <Button size="sm" variant="destructive" onClick={() => updateProfile(p.id, { status: "suspended" })}>Suspender</Button>
-                            )}
+                            <div className="flex items-center justify-end gap-2">
+                              {p.status === "suspended" ? (
+                                <Button size="sm" variant="default" onClick={() => updateProfile(p.id, { status: "active" })}>Ativar</Button>
+                              ) : (
+                                <Button size="sm" variant="destructive" onClick={() => updateProfile(p.id, { status: "suspended" })}>Suspender</Button>
+                              )}
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" title="Eliminar conta">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Eliminar conta?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Isto irá eliminar permanentemente a conta e todos os dados do utilizador {p.email ?? p.display_name ?? ""}. Esta ação não pode ser revertida.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteUser(p.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Eliminar permanentemente
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
