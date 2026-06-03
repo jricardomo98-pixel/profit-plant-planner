@@ -175,6 +175,23 @@ function AdminPage() {
     }
   }
 
+  async function deleteUser(id: string) {
+    const prev = profiles;
+    setProfiles((curr) => curr.filter((p) => p.id !== id));
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess.session?.access_token;
+    const { data, error } = await supabase.functions.invoke("delete-user", {
+      body: { user_id: id },
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    if (error || (data as any)?.error) {
+      setProfiles(prev);
+      toast.error(`Erro ao eliminar: ${error?.message ?? (data as any)?.error}`);
+    } else {
+      toast.success("Conta eliminada");
+    }
+  }
+
   async function saveSubPrice() {
     setSavingPrice(true);
     let error;
