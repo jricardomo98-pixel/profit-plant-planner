@@ -344,11 +344,37 @@ function AdminPage() {
                           </TableCell>
                           <TableCell className="text-right">{recipesByUser.get(p.id) ?? 0}</TableCell>
                           <TableCell className="text-right">
-                            {p.status === "suspended" ? (
-                              <Button size="sm" variant="default" onClick={() => updateProfile(p.id, { status: "active" })}>Ativar</Button>
-                            ) : (
-                              <Button size="sm" variant="destructive" onClick={() => updateProfile(p.id, { status: "suspended" })}>Suspender</Button>
-                            )}
+                            <div className="flex items-center justify-end gap-2">
+                              {p.status === "suspended" ? (
+                                <Button size="sm" variant="default" onClick={() => updateProfile(p.id, { status: "active" })}>Ativar</Button>
+                              ) : (
+                                <Button size="sm" variant="destructive" onClick={() => updateProfile(p.id, { status: "suspended" })}>Suspender</Button>
+                              )}
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive hover:text-destructive-foreground" title="Eliminar conta">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Eliminar conta?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Isto irá eliminar permanentemente a conta e todos os dados do utilizador {p.email ?? p.display_name ?? ""}. Esta ação não pode ser revertida.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteUser(p.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Eliminar permanentemente
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
