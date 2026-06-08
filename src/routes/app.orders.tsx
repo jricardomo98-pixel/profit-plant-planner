@@ -154,7 +154,7 @@ function renderBadges(components: ComponentsShape | LegacyComponent[], decoratio
       </Badge>
     ));
   }
-  const out: JSX.Element[] = [];
+  const out: React.ReactNode[] = [];
   const sections: Array<[keyof ComponentsShape, string]> = [
     ["massa", "Massa"],
     ["recheio", "Recheio"],
