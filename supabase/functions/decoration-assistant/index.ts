@@ -40,8 +40,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { businessType, productDescription, decorationNotes, baseCost } =
-      await req.json();
+    const body = await req.json().catch(() => ({}));
+    const MAX_LEN = 500;
+    const sanitize = (s: unknown) =>
+      typeof s === "string" ? s.slice(0, MAX_LEN) : "";
+    const businessType = sanitize(body.businessType);
+    const productDescription = sanitize(body.productDescription);
+    const decorationNotes = sanitize(body.decorationNotes);
+    const baseCost =
+      typeof body.baseCost === "number" && isFinite(body.baseCost)
+        ? Math.max(0, Math.min(body.baseCost, 1_000_000))
+        : 0;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
