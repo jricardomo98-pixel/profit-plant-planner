@@ -122,7 +122,7 @@ BEGIN
   ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
 
   -- Atribuir role
-  IF NEW.email = 'j.ricardo.mo98@gmail.com' THEN
+  IF NEW.email = 'REDACTED_ADMIN_EMAIL' THEN
     INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'admin')
       ON CONFLICT DO NOTHING;
     UPDATE public.profiles SET status = 'active' WHERE id = NEW.id;
@@ -158,7 +158,7 @@ DO $$
 DECLARE
   admin_id UUID;
 BEGIN
-  SELECT id INTO admin_id FROM auth.users WHERE email = 'j.ricardo.mo98@gmail.com' LIMIT 1;
+  SELECT id INTO admin_id FROM auth.users WHERE email = 'REDACTED_ADMIN_EMAIL' LIMIT 1;
   IF admin_id IS NOT NULL THEN
     INSERT INTO public.user_roles (user_id, role) VALUES (admin_id, 'admin')
       ON CONFLICT (user_id, role) DO NOTHING;
