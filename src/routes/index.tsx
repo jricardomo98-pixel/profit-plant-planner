@@ -239,7 +239,7 @@ function Landing() {
                 <Sparkles className="h-3.5 w-3.5" /> Pro
               </p>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="font-display text-5xl font-bold">€9,99</span>
+                <span className="font-display text-5xl font-bold">€8,99</span>
                 <span className="text-sm text-muted-foreground">/mês</span>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">Para profissionais que querem escalar.</p>
