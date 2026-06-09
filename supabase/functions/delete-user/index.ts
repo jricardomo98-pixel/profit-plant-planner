@@ -45,7 +45,10 @@ Deno.serve(async (req) => {
       .eq("user_id", callerId)
       .eq("role", "admin")
       .maybeSingle();
-    if (roleErr) return json({ error: roleErr.message }, 500);
+    if (roleErr) {
+      console.error("delete-user role lookup error", roleErr);
+      return json({ error: "Service temporarily unavailable" }, 500);
+    }
     if (!roleRow) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json().catch(() => ({}));
@@ -57,10 +60,14 @@ Deno.serve(async (req) => {
       return json({ error: "Não podes eliminar a tua própria conta" }, 400);
 
     const { error: delErr } = await admin.auth.admin.deleteUser(targetId);
-    if (delErr) return json({ error: delErr.message }, 500);
+    if (delErr) {
+      console.error("delete-user deletion error", delErr);
+      return json({ error: "Service temporarily unavailable" }, 500);
+    }
 
     return json({ success: true });
   } catch (e) {
-    return json({ error: (e as Error).message }, 500);
+    console.error("delete-user error", e);
+    return json({ error: "Service temporarily unavailable" }, 500);
   }
 });
