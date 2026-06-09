@@ -11,6 +11,7 @@ import { Sparkles, ArrowRight } from "lucide-react";
 export function OnboardingDialog({ userId, onDone }: { userId: string; onDone: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);
   const [type, setType] = useState<BusinessType | null>(null);
+  const [displayName, setDisplayName] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [laborRate, setLaborRate] = useState(10);
   const [machineRate, setMachineRate] = useState(2);
