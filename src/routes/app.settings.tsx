@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +9,10 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BUSINESS_TYPES, type BusinessType } from "@/lib/business-types";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/settings")({ component: SettingsPage });
