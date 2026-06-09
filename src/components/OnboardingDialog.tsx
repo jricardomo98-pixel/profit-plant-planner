@@ -87,6 +87,10 @@ export function OnboardingDialog({ userId, onDone }: { userId: string; onDone: (
           ) : (
             <div className="mt-5 space-y-4">
               <div className="space-y-1.5">
+                <Label>O teu nome</Label>
+                <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={80} placeholder="Ex: Célia Silva" required />
+              </div>
+              <div className="space-y-1.5">
                 <Label>Nome do negócio (opcional)</Label>
                 <Input value={businessName} onChange={(e) => setBusinessName(e.target.value)} maxLength={80} placeholder="Ex: Doçaria da Ana" />
               </div>
