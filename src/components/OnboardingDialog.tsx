@@ -111,7 +111,7 @@ export function OnboardingDialog({ userId, onDone }: { userId: string; onDone: (
                 <Input type="number" step="1" min="0" max="500" value={profit}
                   onChange={(e) => setProfit(parseFloat(e.target.value) || 0)} />
               </div>
-              <Button onClick={finish} disabled={busy} className="w-full rounded-full" size="lg">
+              <Button onClick={finish} disabled={busy || !displayName.trim()} className="w-full rounded-full" size="lg">
                 {busy ? "A guardar…" : "Começar"}
               </Button>
             </div>
