@@ -95,6 +95,59 @@ function SettingsPage() {
           {busy ? "A guardar…" : "Guardar"}
         </Button>
       </Card>
+
+      <PlanSection plan={profile.plan} email={profile.email} />
+    </div>
+  );
+}
+
+function PlanSection({ plan, email }: { plan: string; email: string | null }) {
+  const isPro = plan === "pro";
+
+  if (isPro) {
+    return (
+      <Card className="space-y-2 p-5">
+        <div className="flex items-center gap-2">
+          <h2 className="font-display text-lg font-semibold">Plano Pro ativo</h2>
+          <Badge className="bg-green-600 hover:bg-green-600">Ativo</Badge>
+        </div>
+        <p className="text-sm text-muted-foreground">Tens acesso a todas as funcionalidades do Calculamus.</p>
+      </Card>
+    );
+  }
+
+  const msg = `Olá! Quero ativar o plano Pro do Calculamus. O meu email é ${email ?? ""}.`;
+  const url = `https://wa.me/351913589112?text=${encodeURIComponent(msg)}`;
+
+  const benefits = [
+    "Receitas ilimitadas",
+    "Gestão de encomendas",
+    "Assistente IA de decoração",
+    "Suporte prioritário",
+  ];
+
+  return (
+    <Card className="space-y-4 p-5">
+      <div>
+        <h2 className="font-display text-xl font-bold">Plano Pro</h2>
+        <p className="text-2xl font-bold text-primary">8,99€<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+      </div>
+      <ul className="space-y-2">
+        {benefits.map((b) => (
+          <li key={b} className="flex items-center gap-2 text-sm">
+            <Check className="h-4 w-4 text-green-600" />
+            <span>{b}</span>
+          </li>
+        ))}
+      </ul>
+      <Button asChild className="w-full rounded-full" size="lg">
+        <a href={url} target="_blank" rel="noopener noreferrer">Ativar Plano Pro</a>
+      </Button>
+      <p className="text-xs text-muted-foreground">
+        Após o pagamento por MBWay, o plano será ativado manualmente pelo administrador em até 24 horas.
+      </p>
+    </Card>
+  );
     </div>
   );
 }
