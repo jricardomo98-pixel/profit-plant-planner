@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +9,10 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BUSINESS_TYPES, type BusinessType } from "@/lib/business-types";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/settings")({ component: SettingsPage });
@@ -49,6 +52,14 @@ function SettingsPage() {
         <h1 className="font-display text-2xl font-bold md:text-3xl">Definições</h1>
         <p className="text-sm text-muted-foreground">Personaliza a app ao teu negócio.</p>
       </header>
+
+      <ProfileSection
+        userId={user!.id}
+        email={profile.email}
+        initialName={profile.display_name ?? ""}
+      />
+
+
 
       <Card className="space-y-4 p-5">
         <div className="space-y-1.5">
@@ -97,7 +108,99 @@ function SettingsPage() {
       </Card>
 
       <PlanSection plan={profile.plan} email={profile.email} />
+
+      <DangerZone userId={user!.id} />
     </div>
+  );
+}
+
+function ProfileSection({ userId, email, initialName }: { userId: string; email: string | null; initialName: string }) {
+  const [name, setName] = useState(initialName);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => { setName(initialName); }, [initialName]);
+
+  async function save() {
+    setBusy(true);
+    const { error } = await supabase.from("profiles").update({
+      display_name: name.trim() || null,
+      updated_at: new Date().toISOString(),
+    }).eq("id", userId);
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Perfil guardado.");
+  }
+
+  return (
+    <Card className="space-y-4 p-5">
+      <h2 className="font-display text-lg font-semibold">Perfil</h2>
+      <div className="space-y-1.5">
+        <Label>O teu nome</Label>
+        <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Ex: Célia Silva" />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Email</Label>
+        <Input value={email ?? ""} readOnly disabled />
+      </div>
+      <Button onClick={save} disabled={busy} className="w-full rounded-full" size="lg">
+        {busy ? "A guardar…" : "Guardar"}
+      </Button>
+    </Card>
+  );
+}
+
+function DangerZone({ userId }: { userId: string }) {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function handleDelete() {
+    if (confirm !== "ELIMINAR") return;
+    setBusy(true);
+    const { error } = await supabase.from("profiles").delete().eq("id", userId);
+    if (error) { setBusy(false); toast.error(error.message); return; }
+    await supabase.auth.signOut();
+    toast.success("Conta eliminada.");
+    navigate({ to: "/" });
+  }
+
+  return (
+    <>
+      <Card className="space-y-3 border-destructive/40 bg-destructive/5 p-5">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-destructive" />
+          <h2 className="font-display text-lg font-semibold text-destructive">Zona de perigo</h2>
+        </div>
+        <div>
+          <h3 className="font-medium">Eliminar conta</h3>
+          <p className="text-sm text-muted-foreground">
+            Esta ação é irreversível. Todos os teus dados serão permanentemente eliminados.
+          </p>
+        </div>
+        <Button variant="destructive" onClick={() => { setConfirm(""); setOpen(true); }}>
+          Eliminar conta
+        </Button>
+      </Card>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eliminar conta</DialogTitle>
+            <DialogDescription>
+              Esta ação é irreversível. Escreve <strong>ELIMINAR</strong> para confirmar.
+            </DialogDescription>
+          </DialogHeader>
+          <Input value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="ELIMINAR" />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button variant="destructive" disabled={busy || confirm !== "ELIMINAR"} onClick={handleDelete}>
+              {busy ? "A eliminar…" : "Eliminar conta"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

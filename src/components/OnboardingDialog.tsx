@@ -11,6 +11,7 @@ import { Sparkles, ArrowRight } from "lucide-react";
 export function OnboardingDialog({ userId, onDone }: { userId: string; onDone: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);
   const [type, setType] = useState<BusinessType | null>(null);
+  const [displayName, setDisplayName] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [laborRate, setLaborRate] = useState(10);
   const [machineRate, setMachineRate] = useState(2);
@@ -18,9 +19,10 @@ export function OnboardingDialog({ userId, onDone }: { userId: string; onDone: (
   const [busy, setBusy] = useState(false);
 
   async function finish() {
-    if (!type) return;
+    if (!type || !displayName.trim()) return;
     setBusy(true);
     const { error } = await supabase.from("profiles").update({
+      display_name: displayName.trim(),
       business_type: type,
       business_name: businessName || null,
       labor_rate_hour: laborRate,
@@ -85,6 +87,10 @@ export function OnboardingDialog({ userId, onDone }: { userId: string; onDone: (
           ) : (
             <div className="mt-5 space-y-4">
               <div className="space-y-1.5">
+                <Label>O teu nome</Label>
+                <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={80} placeholder="Ex: Célia Silva" required />
+              </div>
+              <div className="space-y-1.5">
                 <Label>Nome do negócio (opcional)</Label>
                 <Input value={businessName} onChange={(e) => setBusinessName(e.target.value)} maxLength={80} placeholder="Ex: Doçaria da Ana" />
               </div>
@@ -105,7 +111,7 @@ export function OnboardingDialog({ userId, onDone }: { userId: string; onDone: (
                 <Input type="number" step="1" min="0" max="500" value={profit}
                   onChange={(e) => setProfit(parseFloat(e.target.value) || 0)} />
               </div>
-              <Button onClick={finish} disabled={busy} className="w-full rounded-full" size="lg">
+              <Button onClick={finish} disabled={busy || !displayName.trim()} className="w-full rounded-full" size="lg">
                 {busy ? "A guardar…" : "Começar"}
               </Button>
             </div>
