@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error("decoration-assistant error", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown" }),
+      JSON.stringify({ error: "Service temporarily unavailable" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
