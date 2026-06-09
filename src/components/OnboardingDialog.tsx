@@ -19,9 +19,10 @@ export function OnboardingDialog({ userId, onDone }: { userId: string; onDone: (
   const [busy, setBusy] = useState(false);
 
   async function finish() {
-    if (!type) return;
+    if (!type || !displayName.trim()) return;
     setBusy(true);
     const { error } = await supabase.from("profiles").update({
+      display_name: displayName.trim(),
       business_type: type,
       business_name: businessName || null,
       labor_rate_hour: laborRate,
