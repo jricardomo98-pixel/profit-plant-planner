@@ -53,6 +53,14 @@ function SettingsPage() {
         <p className="text-sm text-muted-foreground">Personaliza a app ao teu negócio.</p>
       </header>
 
+      <ProfileSection
+        userId={user!.id}
+        email={profile.email}
+        initialName={profile.display_name ?? ""}
+      />
+
+
+
       <Card className="space-y-4 p-5">
         <div className="space-y-1.5">
           <Label>Tipo de negócio</Label>
