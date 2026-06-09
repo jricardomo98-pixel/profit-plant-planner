@@ -148,6 +148,5 @@ function PlanSection({ plan, email }: { plan: string; email: string | null }) {
       </p>
     </Card>
   );
-    </div>
-  );
 }
+
