@@ -32,6 +32,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import Aurora from "@/components/Aurora";
 
 export const Route = createFileRoute("/app/")({ component: HomePage });
 
@@ -171,7 +172,11 @@ function HomePage() {
   ];
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="relative">
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-60">
+        <Aurora colorStops={["#16a34a", "#ffffff", "#15803d"]} amplitude={0.6} blend={0.5} />
+      </div>
+      <div className="space-y-6 pb-4">
       <section className="rounded-3xl border bg-card p-6 shadow-[var(--shadow-soft)]">
         <div className="flex items-start justify-between gap-4">
           <div>
