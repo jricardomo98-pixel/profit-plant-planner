@@ -26,26 +26,8 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [googleBusy, setGoogleBusy] = useState(false);
 
-  async function onGoogle() {
-    setGoogleBusy(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/app`,
-      });
-      if (result.error) {
-        toast.error(result.error.message ?? "Erro ao entrar com Google");
-        setGoogleBusy(false);
-        return;
-      }
-      if (result.redirected) return;
-      navigate({ to: "/app" });
-    } catch (err: any) {
-      toast.error(err?.message ?? "Erro ao entrar com Google");
-      setGoogleBusy(false);
-    }
-  }
+
 
   useEffect(() => {
     if (!loading && user) navigate({ to: "/app" });
