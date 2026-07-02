@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, Calculator, Save, Clock, Flame, AlertTriangle, AlertCircle, CheckCircle2, Sparkles, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { fmtEUR, round2 } from "@/lib/format";
+import { fmtEUR, round2, parseDec } from "@/lib/format";
 import { VOCAB, type BusinessType } from "@/lib/business-types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "@tanstack/react-router";
