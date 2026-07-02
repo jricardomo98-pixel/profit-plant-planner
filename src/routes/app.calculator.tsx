@@ -77,7 +77,7 @@ function CalculatorPage() {
       const ing = ingMap.get(u.ingredient_id);
       if (!ing) return s;
       const perUnit = Number(ing.package_price) / Math.max(Number(ing.package_quantity), 0.0001);
-      return s + perUnit * (Number(u.quantity) || 0);
+      return s + perUnit * parseDec(String(u.quantity));
     }, 0);
 
     // Custos fixos rateados pelo tempo de mão-de-obra
