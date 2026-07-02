@@ -130,11 +130,12 @@ function CalculatorPage() {
     used.forEach((x, idx) => {
       const ing = ingMap.get(x.ingredient_id);
       const label = ing?.name ?? `Linha ${idx + 1}`;
-      if (x.quantity < 0) errors.push({ msg: `"${label}": a quantidade usada não pode ser negativa.` });
-      if (x.quantity === 0) warnings.push({ msg: `"${label}": quantidade usada é 0 — não vai contar para o custo.` });
-      if (ing && x.quantity > Number(ing.package_quantity)) {
+      const q = parseDec(String(x.quantity));
+      if (q < 0) errors.push({ msg: `"${label}": a quantidade usada não pode ser negativa.` });
+      if (q === 0) warnings.push({ msg: `"${label}": quantidade usada é 0 — não vai contar para o custo.` });
+      if (ing && q > Number(ing.package_quantity)) {
         warnings.push({
-          msg: `"${label}": estás a usar ${x.quantity}${ing.unit} mas a embalagem tem apenas ${ing.package_quantity}${ing.unit}. Confirma se vais precisar de mais que uma embalagem.`,
+          msg: `"${label}": estás a usar ${q}${ing.unit} mas a embalagem tem apenas ${ing.package_quantity}${ing.unit}. Confirma se vais precisar de mais que uma embalagem.`,
         });
       }
       counts.set(x.ingredient_id, (counts.get(x.ingredient_id) ?? 0) + 1);
