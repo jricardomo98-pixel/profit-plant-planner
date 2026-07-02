@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Home, Calculator, Wallet, Boxes, ClipboardList, LogOut, Settings, Shield } from "lucide-react";
+import { Home, Calculator, Wallet, Boxes, ClipboardList, LogOut, Settings, Shield, ChefHat } from "lucide-react";
 import { OnboardingDialog } from "@/components/OnboardingDialog";
 import type { BusinessType } from "@/lib/business-types";
 
@@ -67,6 +67,7 @@ function AppShell() {
   const tabs = [
     { to: "/app", label: "Início", icon: Home, exact: true },
     { to: "/app/calculator", label: "Calcular", icon: Calculator },
+    { to: "/app/recipes", label: "Receitas", icon: ChefHat },
     { to: "/app/ingredients", label: "Materiais", icon: Boxes },
     { to: "/app/orders", label: "Encomendas", icon: ClipboardList },
     { to: "/app/fixed-costs", label: "Custos", icon: Wallet },
@@ -117,7 +118,7 @@ function AppShell() {
 
       {/* mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur-xl md:hidden">
-        <div className="mx-auto grid max-w-5xl grid-cols-5">
+        <div className="mx-auto grid max-w-5xl grid-cols-6">
           {tabs.map((t) => {
             const active = t.exact ? location.pathname === t.to : location.pathname.startsWith(t.to);
             return (

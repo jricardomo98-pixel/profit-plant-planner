@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Boxes } from "lucide-react";
-import { fmtEUR } from "@/lib/format";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Plus, Trash2, Boxes, Pencil } from "lucide-react";
+import { fmtEUR, parseDec } from "@/lib/format";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -40,6 +42,13 @@ function IngredientsPage() {
   const [unit, setUnit] = useState("g");
   const [busy, setBusy] = useState(false);
 
+  const [editing, setEditing] = useState<Row | null>(null);
+  const [eName, setEName] = useState("");
+  const [ePrice, setEPrice] = useState("");
+  const [eQty, setEQty] = useState("");
+  const [eUnit, setEUnit] = useState("g");
+  const [eBusy, setEBusy] = useState(false);
+
   async function load() {
     if (!user) return;
     const { data } = await supabase.from("ingredients").select("*").eq("user_id", user.id).order("name");
@@ -51,8 +60,8 @@ function IngredientsPage() {
     if (!user) return;
     const parsed = schema.safeParse({
       name,
-      package_price: parseFloat(price) || 0,
-      package_quantity: parseFloat(qty) || 0,
+      package_price: parseDec(price),
+      package_quantity: parseDec(qty),
       unit,
     });
     if (!parsed.success) { toast.error("Preenche todos os campos"); return; }
@@ -69,6 +78,32 @@ function IngredientsPage() {
     load();
   }
 
+  function openEdit(r: Row) {
+    setEditing(r);
+    setEName(r.name);
+    setEPrice(String(r.package_price));
+    setEQty(String(r.package_quantity));
+    setEUnit(r.unit);
+  }
+
+  async function saveEdit() {
+    if (!editing) return;
+    const parsed = schema.safeParse({
+      name: eName,
+      package_price: parseDec(ePrice),
+      package_quantity: parseDec(eQty),
+      unit: eUnit,
+    });
+    if (!parsed.success) { toast.error("Preenche todos os campos"); return; }
+    setEBusy(true);
+    const { error } = await supabase.from("ingredients").update(parsed.data).eq("id", editing.id);
+    setEBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Ingrediente atualizado. Receitas já gravadas mantêm o custo antigo.");
+    setEditing(null);
+    load();
+  }
+
   return (
     <div className="space-y-5">
       <header>
@@ -79,8 +114,8 @@ function IngredientsPage() {
       <Card className="p-4">
         <div className="grid gap-2 md:grid-cols-[1.4fr_120px_120px_100px_auto]">
           <Input placeholder="Ex: Farinha tipo 55" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
-          <Input type="number" step="0.01" min="0" placeholder="Preço €" value={price} onChange={(e) => setPrice(e.target.value)} />
-          <Input type="number" step="0.01" min="0" placeholder="Quantidade" value={qty} onChange={(e) => setQty(e.target.value)} />
+          <Input type="text" inputMode="decimal" placeholder="Preço €" value={price} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setPrice(e.target.value)} />
+          <Input type="text" inputMode="decimal" placeholder="Quantidade" value={qty} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setQty(e.target.value)} />
           <Select value={unit} onValueChange={setUnit}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>{UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
@@ -110,13 +145,56 @@ function IngredientsPage() {
                   &nbsp;· <span className="text-primary">{fmtEUR(perUnit)} / {r.unit}</span>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => remove(r.id)} className="text-muted-foreground hover:text-destructive">
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" onClick={() => openEdit(r)} className="text-muted-foreground hover:text-primary">
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => remove(r.id)} className="text-muted-foreground hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </Card>
           );
         })}
       </div>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar ingrediente</DialogTitle>
+            <DialogDescription>
+              Alterar o preço não muda o custo de receitas já gravadas — só afeta receitas criadas ou recalculadas depois.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Nome</Label>
+              <Input value={eName} onChange={(e) => setEName(e.target.value)} maxLength={80} />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-1.5">
+                <Label>Preço €</Label>
+                <Input type="text" inputMode="decimal" value={ePrice} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setEPrice(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Quantidade</Label>
+                <Input type="text" inputMode="decimal" value={eQty} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setEQty(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Unidade</Label>
+                <Select value={eUnit} onValueChange={setEUnit}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button onClick={saveEdit} disabled={eBusy}>{eBusy ? "A guardar…" : "Guardar alterações"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, Calculator, Save, Clock, Flame, AlertTriangle, AlertCircle, CheckCircle2, Sparkles, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { fmtEUR, round2 } from "@/lib/format";
+import { fmtEUR, round2, parseDec } from "@/lib/format";
 import { VOCAB, type BusinessType } from "@/lib/business-types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "@tanstack/react-router";
@@ -26,7 +26,7 @@ type Ingredient = {
   unit: string;
 };
 
-type Used = { ingredient_id: string; quantity: number };
+type Used = { ingredient_id: string; quantity: number | string };
 
 function CalculatorPage() {
   const { user } = useAuth();
@@ -66,9 +66,9 @@ function CalculatorPage() {
   const vocab = profile ? VOCAB[(profile.business_type ?? "outro") as BusinessType] : VOCAB.outro;
 
   const calc = useMemo(() => {
-    const labor = (parseFloat(laborMin) || 0) / 60;
-    const machine = (parseFloat(machineMin) || 0) / 60;
-    const u = Math.max(parseFloat(units) || 1, 1);
+    const labor = parseDec(laborMin) / 60;
+    const machine = parseDec(machineMin) / 60;
+    const u = Math.max(parseDec(units) || 1, 1);
     const laborCost = labor * (profile?.labor_rate_hour ?? 0);
     const machineCost = machine * (profile?.machine_rate_hour ?? 0);
 
@@ -77,7 +77,7 @@ function CalculatorPage() {
       const ing = ingMap.get(u.ingredient_id);
       if (!ing) return s;
       const perUnit = Number(ing.package_price) / Math.max(Number(ing.package_quantity), 0.0001);
-      return s + perUnit * (Number(u.quantity) || 0);
+      return s + perUnit * parseDec(String(u.quantity));
     }, 0);
 
     // Custos fixos rateados pelo tempo de mão-de-obra
@@ -100,25 +100,25 @@ function CalculatorPage() {
     const errors: { msg: string; fix?: React.ReactNode }[] = [];
     const warnings: { msg: string; fix?: React.ReactNode }[] = [];
 
-    const lm = parseFloat(laborMin);
-    const mm = parseFloat(machineMin);
-    const u = parseFloat(units);
+    const lm = parseDec(laborMin);
+    const mm = parseDec(machineMin);
+    const u = parseDec(units);
 
-    if (laborMin !== "" && (isNaN(lm) || lm < 0)) errors.push({ msg: "Os minutos de mão-de-obra não podem ser negativos." });
-    if (machineMin !== "" && (isNaN(mm) || mm < 0)) errors.push({ msg: `Os minutos de ${vocab.machine} não podem ser negativos.` });
-    if (units !== "" && (isNaN(u) || u < 1)) errors.push({ msg: "As unidades produzidas têm de ser pelo menos 1." });
+    if (laborMin !== "" && lm < 0) errors.push({ msg: "Os minutos de mão-de-obra não podem ser negativos." });
+    if (machineMin !== "" && mm < 0) errors.push({ msg: `Os minutos de ${vocab.machine} não podem ser negativos.` });
+    if (units !== "" && u < 1) errors.push({ msg: "As unidades produzidas têm de ser pelo menos 1." });
 
-    if ((parseFloat(laborMin) || 0) === 0 && (parseFloat(machineMin) || 0) === 0) {
+    if (lm === 0 && mm === 0) {
       warnings.push({ msg: "Não indicaste tempo de trabalho nem de máquina — o custo de mão-de-obra ficará a zero." });
     }
 
-    if ((parseFloat(laborMin) || 0) > 0 && !(profile?.labor_rate_hour > 0)) {
+    if (lm > 0 && !(profile?.labor_rate_hour > 0)) {
       warnings.push({
         msg: "Não tens taxa de mão-de-obra (€/h) definida.",
         fix: <Link to="/app/settings" className="font-medium underline">Definir nas Definições</Link>,
       });
     }
-    if ((parseFloat(machineMin) || 0) > 0 && !(profile?.machine_rate_hour > 0)) {
+    if (mm > 0 && !(profile?.machine_rate_hour > 0)) {
       warnings.push({
         msg: `Não tens taxa de ${vocab.machine} (€/h) definida.`,
         fix: <Link to="/app/settings" className="font-medium underline">Definir nas Definições</Link>,
@@ -130,11 +130,12 @@ function CalculatorPage() {
     used.forEach((x, idx) => {
       const ing = ingMap.get(x.ingredient_id);
       const label = ing?.name ?? `Linha ${idx + 1}`;
-      if (x.quantity < 0) errors.push({ msg: `"${label}": a quantidade usada não pode ser negativa.` });
-      if (x.quantity === 0) warnings.push({ msg: `"${label}": quantidade usada é 0 — não vai contar para o custo.` });
-      if (ing && x.quantity > Number(ing.package_quantity)) {
+      const q = parseDec(String(x.quantity));
+      if (q < 0) errors.push({ msg: `"${label}": a quantidade usada não pode ser negativa.` });
+      if (q === 0) warnings.push({ msg: `"${label}": quantidade usada é 0 — não vai contar para o custo.` });
+      if (ing && q > Number(ing.package_quantity)) {
         warnings.push({
-          msg: `"${label}": estás a usar ${x.quantity}${ing.unit} mas a embalagem tem apenas ${ing.package_quantity}${ing.unit}. Confirma se vais precisar de mais que uma embalagem.`,
+          msg: `"${label}": estás a usar ${q}${ing.unit} mas a embalagem tem apenas ${ing.package_quantity}${ing.unit}. Confirma se vais precisar de mais que uma embalagem.`,
         });
       }
       counts.set(x.ingredient_id, (counts.get(x.ingredient_id) ?? 0) + 1);
@@ -175,9 +176,9 @@ function CalculatorPage() {
     const { error } = await supabase.from("recipes").insert({
       user_id: user.id,
       name: name.trim().slice(0, 80),
-      labor_minutes: parseFloat(laborMin) || 0,
-      machine_minutes: parseFloat(machineMin) || 0,
-      ingredients_used: used,
+      labor_minutes: parseDec(laborMin),
+      machine_minutes: parseDec(machineMin),
+      ingredients_used: used.map((u) => ({ ingredient_id: u.ingredient_id, quantity: parseDec(String(u.quantity)) })),
       ingredient_cost: round2(calc.ingredientCost),
       labor_cost: round2(calc.laborCost),
       machine_cost: round2(calc.machineCost),
@@ -226,15 +227,15 @@ function CalculatorPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="space-y-1.5">
               <Label className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-primary" />Mão-de-obra (min)</Label>
-              <Input type="number" min="0" step="1" value={laborMin} onChange={(e) => setLaborMin(e.target.value)} placeholder="20" />
+              <Input type="text" inputMode="decimal" value={laborMin} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setLaborMin(e.target.value)} placeholder="20" />
             </div>
             <div className="space-y-1.5">
               <Label className="flex items-center gap-1.5"><Flame className="h-3.5 w-3.5 text-warning" />{vocab.machine} (min)</Label>
-              <Input type="number" min="0" step="1" value={machineMin} onChange={(e) => setMachineMin(e.target.value)} placeholder="60" />
+              <Input type="text" inputMode="decimal" value={machineMin} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setMachineMin(e.target.value)} placeholder="60" />
             </div>
             <div className="space-y-1.5">
               <Label>Unidades produzidas</Label>
-              <Input type="number" min="1" step="1" value={units} onChange={(e) => setUnits(e.target.value)} />
+              <Input type="text" inputMode="decimal" value={units} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setUnits(e.target.value)} />
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -300,7 +301,7 @@ function CalculatorPage() {
           {used.map((u, idx) => {
             const ing = ingredients.find((i) => i.id === u.ingredient_id);
             const perUnit = ing ? Number(ing.package_price) / Math.max(Number(ing.package_quantity), 0.0001) : 0;
-            const cost = perUnit * (u.quantity || 0);
+            const cost = perUnit * parseDec(String(u.quantity));
             return (
               <div key={idx} className="grid items-center gap-2 rounded-xl bg-muted/40 p-2 md:grid-cols-[1fr_120px_90px_60px]">
                 <Select value={u.ingredient_id} onValueChange={(v) => setUsed((arr) => arr.map((x, i) => i === idx ? { ...x, ingredient_id: v } : x))}>
@@ -309,8 +310,9 @@ function CalculatorPage() {
                     {ingredients.map((i) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Input type="number" min="0" step="0.01" value={u.quantity}
-                  onChange={(e) => setUsed((arr) => arr.map((x, i) => i === idx ? { ...x, quantity: parseFloat(e.target.value) || 0 } : x))}
+                <Input type="text" inputMode="decimal" value={String(u.quantity)}
+                  onFocus={(e) => e.currentTarget.select()}
+                  onChange={(e) => setUsed((arr) => arr.map((x, i) => i === idx ? { ...x, quantity: e.target.value } : x))}
                   placeholder={ing?.unit ?? "qtd"} />
                 <div className="text-right text-sm font-medium text-primary">{fmtEUR(cost)}</div>
                 <Button variant="ghost" size="icon" onClick={() => setUsed((arr) => arr.filter((_, i) => i !== idx))}>
