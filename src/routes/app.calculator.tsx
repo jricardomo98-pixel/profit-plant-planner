@@ -26,7 +26,7 @@ type Ingredient = {
   unit: string;
 };
 
-type Used = { ingredient_id: string; quantity: number };
+type Used = { ingredient_id: string; quantity: number | string };
 
 function CalculatorPage() {
   const { user } = useAuth();
