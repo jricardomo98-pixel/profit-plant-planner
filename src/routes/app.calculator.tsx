@@ -178,7 +178,7 @@ function CalculatorPage() {
       name: name.trim().slice(0, 80),
       labor_minutes: parseDec(laborMin),
       machine_minutes: parseDec(machineMin),
-      ingredients_used: used,
+      ingredients_used: used.map((u) => ({ ingredient_id: u.ingredient_id, quantity: parseDec(String(u.quantity)) })),
       ingredient_cost: round2(calc.ingredientCost),
       labor_cost: round2(calc.laborCost),
       machine_cost: round2(calc.machineCost),
