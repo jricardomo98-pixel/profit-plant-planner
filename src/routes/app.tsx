@@ -67,6 +67,7 @@ function AppShell() {
   const tabs = [
     { to: "/app", label: "Início", icon: Home, exact: true },
     { to: "/app/calculator", label: "Calcular", icon: Calculator },
+    { to: "/app/recipes", label: "Receitas", icon: ChefHat },
     { to: "/app/ingredients", label: "Materiais", icon: Boxes },
     { to: "/app/orders", label: "Encomendas", icon: ClipboardList },
     { to: "/app/fixed-costs", label: "Custos", icon: Wallet },
