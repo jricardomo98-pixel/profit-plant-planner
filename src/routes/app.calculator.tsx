@@ -100,15 +100,15 @@ function CalculatorPage() {
     const errors: { msg: string; fix?: React.ReactNode }[] = [];
     const warnings: { msg: string; fix?: React.ReactNode }[] = [];
 
-    const lm = parseFloat(laborMin);
-    const mm = parseFloat(machineMin);
-    const u = parseFloat(units);
+    const lm = parseDec(laborMin);
+    const mm = parseDec(machineMin);
+    const u = parseDec(units);
 
-    if (laborMin !== "" && (isNaN(lm) || lm < 0)) errors.push({ msg: "Os minutos de mão-de-obra não podem ser negativos." });
-    if (machineMin !== "" && (isNaN(mm) || mm < 0)) errors.push({ msg: `Os minutos de ${vocab.machine} não podem ser negativos.` });
-    if (units !== "" && (isNaN(u) || u < 1)) errors.push({ msg: "As unidades produzidas têm de ser pelo menos 1." });
+    if (laborMin !== "" && lm < 0) errors.push({ msg: "Os minutos de mão-de-obra não podem ser negativos." });
+    if (machineMin !== "" && mm < 0) errors.push({ msg: `Os minutos de ${vocab.machine} não podem ser negativos.` });
+    if (units !== "" && u < 1) errors.push({ msg: "As unidades produzidas têm de ser pelo menos 1." });
 
-    if ((parseFloat(laborMin) || 0) === 0 && (parseFloat(machineMin) || 0) === 0) {
+    if (lm === 0 && mm === 0) {
       warnings.push({ msg: "Não indicaste tempo de trabalho nem de máquina — o custo de mão-de-obra ficará a zero." });
     }
 
