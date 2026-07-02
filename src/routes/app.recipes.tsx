@@ -67,7 +67,7 @@ function RecipesPage() {
     setProfile(p);
     setIngredients((ing as Ingredient[]) ?? []);
     setFixedCostsTotal((fc ?? []).reduce((s: number, r: any) => s + Number(r.amount), 0));
-    setRecipes((rec as Recipe[]) ?? []);
+    setRecipes(((rec as unknown) as Recipe[]) ?? []);
     setLoading(false);
   }
   useEffect(() => { loadAll(); }, [user]);

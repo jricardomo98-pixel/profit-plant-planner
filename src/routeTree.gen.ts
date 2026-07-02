@@ -17,6 +17,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppRecipesRouteImport } from './routes/app.recipes'
 import { Route as AppOrdersRouteImport } from './routes/app.orders'
 import { Route as AppIngredientsRouteImport } from './routes/app.ingredients'
 import { Route as AppFixedCostsRouteImport } from './routes/app.fixed-costs'
@@ -62,6 +63,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRecipesRoute = AppRecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppOrdersRoute = AppOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
   '/app/orders': typeof AppOrdersRoute
+  '/app/recipes': typeof AppRecipesRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
 }
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
   '/app/orders': typeof AppOrdersRoute
+  '/app/recipes': typeof AppRecipesRoute
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
 }
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/app/fixed-costs': typeof AppFixedCostsRoute
   '/app/ingredients': typeof AppIngredientsRoute
   '/app/orders': typeof AppOrdersRoute
+  '/app/recipes': typeof AppRecipesRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
 }
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/app/fixed-costs'
     | '/app/ingredients'
     | '/app/orders'
+    | '/app/recipes'
     | '/app/settings'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/app/fixed-costs'
     | '/app/ingredients'
     | '/app/orders'
+    | '/app/recipes'
     | '/app/settings'
     | '/app'
   id:
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/app/fixed-costs'
     | '/app/ingredients'
     | '/app/orders'
+    | '/app/recipes'
     | '/app/settings'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -236,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/recipes': {
+      id: '/app/recipes'
+      path: '/recipes'
+      fullPath: '/app/recipes'
+      preLoaderRoute: typeof AppRecipesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/orders': {
       id: '/app/orders'
       path: '/orders'
@@ -272,6 +291,7 @@ interface AppRouteChildren {
   AppFixedCostsRoute: typeof AppFixedCostsRoute
   AppIngredientsRoute: typeof AppIngredientsRoute
   AppOrdersRoute: typeof AppOrdersRoute
+  AppRecipesRoute: typeof AppRecipesRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -281,6 +301,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppFixedCostsRoute: AppFixedCostsRoute,
   AppIngredientsRoute: AppIngredientsRoute,
   AppOrdersRoute: AppOrdersRoute,
+  AppRecipesRoute: AppRecipesRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
 }
