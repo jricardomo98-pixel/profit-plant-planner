@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Home, Calculator, Wallet, Boxes, ClipboardList, LogOut, Settings, Shield } from "lucide-react";
+import { Home, Calculator, Wallet, Boxes, ClipboardList, LogOut, Settings, Shield, ChefHat } from "lucide-react";
 import { OnboardingDialog } from "@/components/OnboardingDialog";
 import type { BusinessType } from "@/lib/business-types";
 
