@@ -301,7 +301,7 @@ function CalculatorPage() {
           {used.map((u, idx) => {
             const ing = ingredients.find((i) => i.id === u.ingredient_id);
             const perUnit = ing ? Number(ing.package_price) / Math.max(Number(ing.package_quantity), 0.0001) : 0;
-            const cost = perUnit * (u.quantity || 0);
+            const cost = perUnit * parseDec(String(u.quantity));
             return (
               <div key={idx} className="grid items-center gap-2 rounded-xl bg-muted/40 p-2 md:grid-cols-[1fr_120px_90px_60px]">
                 <Select value={u.ingredient_id} onValueChange={(v) => setUsed((arr) => arr.map((x, i) => i === idx ? { ...x, ingredient_id: v } : x))}>
@@ -310,8 +310,9 @@ function CalculatorPage() {
                     {ingredients.map((i) => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Input type="number" min="0" step="0.01" value={u.quantity}
-                  onChange={(e) => setUsed((arr) => arr.map((x, i) => i === idx ? { ...x, quantity: parseFloat(e.target.value) || 0 } : x))}
+                <Input type="text" inputMode="decimal" value={String(u.quantity)}
+                  onFocus={(e) => e.currentTarget.select()}
+                  onChange={(e) => setUsed((arr) => arr.map((x, i) => i === idx ? { ...x, quantity: e.target.value } : x))}
                   placeholder={ing?.unit ?? "qtd"} />
                 <div className="text-right text-sm font-medium text-primary">{fmtEUR(cost)}</div>
                 <Button variant="ghost" size="icon" onClick={() => setUsed((arr) => arr.filter((_, i) => i !== idx))}>
