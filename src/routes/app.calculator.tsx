@@ -226,15 +226,15 @@ function CalculatorPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="space-y-1.5">
               <Label className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-primary" />Mão-de-obra (min)</Label>
-              <Input type="number" min="0" step="1" value={laborMin} onChange={(e) => setLaborMin(e.target.value)} placeholder="20" />
+              <Input type="text" inputMode="decimal" value={laborMin} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setLaborMin(e.target.value)} placeholder="20" />
             </div>
             <div className="space-y-1.5">
               <Label className="flex items-center gap-1.5"><Flame className="h-3.5 w-3.5 text-warning" />{vocab.machine} (min)</Label>
-              <Input type="number" min="0" step="1" value={machineMin} onChange={(e) => setMachineMin(e.target.value)} placeholder="60" />
+              <Input type="text" inputMode="decimal" value={machineMin} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setMachineMin(e.target.value)} placeholder="60" />
             </div>
             <div className="space-y-1.5">
               <Label>Unidades produzidas</Label>
-              <Input type="number" min="1" step="1" value={units} onChange={(e) => setUnits(e.target.value)} />
+              <Input type="text" inputMode="decimal" value={units} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setUnits(e.target.value)} />
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
