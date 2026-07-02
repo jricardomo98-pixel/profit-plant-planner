@@ -112,13 +112,13 @@ function CalculatorPage() {
       warnings.push({ msg: "Não indicaste tempo de trabalho nem de máquina — o custo de mão-de-obra ficará a zero." });
     }
 
-    if ((parseFloat(laborMin) || 0) > 0 && !(profile?.labor_rate_hour > 0)) {
+    if (lm > 0 && !(profile?.labor_rate_hour > 0)) {
       warnings.push({
         msg: "Não tens taxa de mão-de-obra (€/h) definida.",
         fix: <Link to="/app/settings" className="font-medium underline">Definir nas Definições</Link>,
       });
     }
-    if ((parseFloat(machineMin) || 0) > 0 && !(profile?.machine_rate_hour > 0)) {
+    if (mm > 0 && !(profile?.machine_rate_hour > 0)) {
       warnings.push({
         msg: `Não tens taxa de ${vocab.machine} (€/h) definida.`,
         fix: <Link to="/app/settings" className="font-medium underline">Definir nas Definições</Link>,
