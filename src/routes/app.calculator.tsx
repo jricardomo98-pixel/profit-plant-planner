@@ -66,9 +66,9 @@ function CalculatorPage() {
   const vocab = profile ? VOCAB[(profile.business_type ?? "outro") as BusinessType] : VOCAB.outro;
 
   const calc = useMemo(() => {
-    const labor = (parseFloat(laborMin) || 0) / 60;
-    const machine = (parseFloat(machineMin) || 0) / 60;
-    const u = Math.max(parseFloat(units) || 1, 1);
+    const labor = parseDec(laborMin) / 60;
+    const machine = parseDec(machineMin) / 60;
+    const u = Math.max(parseDec(units) || 1, 1);
     const laborCost = labor * (profile?.labor_rate_hour ?? 0);
     const machineCost = machine * (profile?.machine_rate_hour ?? 0);
 
