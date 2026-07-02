@@ -118,7 +118,7 @@ function AppShell() {
 
       {/* mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur-xl md:hidden">
-        <div className="mx-auto grid max-w-5xl grid-cols-5">
+        <div className="mx-auto grid max-w-5xl grid-cols-6">
           {tabs.map((t) => {
             const active = t.exact ? location.pathname === t.to : location.pathname.startsWith(t.to);
             return (
