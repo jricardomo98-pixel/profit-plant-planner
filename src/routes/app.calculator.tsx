@@ -175,8 +175,8 @@ function CalculatorPage() {
     const { error } = await supabase.from("recipes").insert({
       user_id: user.id,
       name: name.trim().slice(0, 80),
-      labor_minutes: parseFloat(laborMin) || 0,
-      machine_minutes: parseFloat(machineMin) || 0,
+      labor_minutes: parseDec(laborMin),
+      machine_minutes: parseDec(machineMin),
       ingredients_used: used,
       ingredient_cost: round2(calc.ingredientCost),
       labor_cost: round2(calc.laborCost),
